@@ -1,8 +1,10 @@
 """Autocompletion support for ros-is-ros2 commands."""
 
 import subprocess
+from typing import List
 
 from .detectors import ensure_ros2_available
+from .discovery import get_discovery
 
 
 class ROS2CompletionDelegate:
@@ -220,6 +222,27 @@ class SubcommandCompleter:
         return [cmd for cmd in self.valid_subcommands if cmd.startswith(prefix)]
 
 
+class DynamicSubcommandCompleter:
+    """Dynamically completes subcommands by discovering them from ros2."""
+
+    def __init__(self, ros1_command: str):
+        """Initialize with the ros1 command name (e.g., 'rostopic')."""
+        self.ros1_command = ros1_command
+
+    def __call__(self, prefix: str, **kwargs) -> List[str]:
+        """Return subcommands that match the prefix."""
+        discovery = get_discovery()
+        
+        # Get valid subcommands for this ros1 command
+        valid_subcommands = discovery.get_valid_subcommands(self.ros1_command)
+        
+        # Add help options
+        valid_subcommands.extend(["-h", "--help", "help"])
+        
+        # Filter by prefix
+        return [cmd for cmd in valid_subcommands if cmd.startswith(prefix)]
+
+
 def setup_rostopic_completion():
     """Set up completion for rostopic command."""
     try:
@@ -230,27 +253,104 @@ def setup_rostopic_completion():
 
 
 def create_ros2_argument_completer(ros2_subcommand: str, tool_subcommand: str):
-    """Create a completer for arguments that delegates to ros2.
+    """Create a completer for arguments that provides useful completions.
 
     Args:
         ros2_subcommand: The ros2 subcommand (e.g., 'topic')
         tool_subcommand: The tool subcommand (e.g., 'echo')
     """
     def completer(prefix: str, parsed_args, **kwargs):
-        """Complete by delegating to ros2 command."""
+        """Complete by providing context-aware completions."""
         if not ensure_ros2_available():
             return []
 
-        # For topic names and other arguments, delegate to ros2
-        delegate = ROS2CompletionDelegate(ros2_subcommand)
-
-        # Create a mock parsed_args with the tool subcommand
-        class MockArgs:
-            def __init__(self):
-                self.subcommand = tool_subcommand
-                self.args = []
-
-        mock_args = MockArgs()
-        return delegate.complete(prefix, mock_args)
+        # Provide specific completions based on the subcommand
+        try:
+            if ros2_subcommand == "topic":
+                if tool_subcommand in ["echo", "hz", "info", "type", "pub"]:
+                    # Complete with topic names
+                    result = subprocess.run(
+                        ["ros2", "topic", "list"],
+                        capture_output=True,
+                        text=True,
+                        timeout=2
+                    )
+                    if result.returncode == 0:
+                        topics = result.stdout.strip().split("\n")
+                        return [topic for topic in topics if topic.startswith(prefix)]
+                    else:
+                        # Fallback when ros2 topic list fails during completion
+                        fallback_topics = ["/parameter_events", "/rosout", "/chatter", "/cmd_vel"]
+                        return [topic for topic in fallback_topics if topic.startswith(prefix)]
+                elif tool_subcommand == "list":
+                    # For list subcommand, don't return flags since they're handled by argparse
+                    # Return empty list for non-topic completions
+                    return []
+                    
+            elif ros2_subcommand == "node":
+                if tool_subcommand == "info":
+                    # Complete with node names
+                    result = subprocess.run(
+                        ["ros2", "node", "list"],
+                        capture_output=True,
+                        text=True,
+                        timeout=2
+                    )
+                    if result.returncode == 0:
+                        nodes = result.stdout.strip().split("\n")
+                        return [node for node in nodes if node.startswith(prefix)]
+                    else:
+                        # Fallback when ros2 node list fails
+                        fallback_nodes = ["/node1", "/node2"]
+                        return [node for node in fallback_nodes if node.startswith(prefix)]
+                elif tool_subcommand == "list":
+                    # Flags handled by argparse
+                    return []
+                    
+            elif ros2_subcommand == "service":
+                if tool_subcommand in ["call", "type"]:
+                    # Complete with service names
+                    result = subprocess.run(
+                        ["ros2", "service", "list"],
+                        capture_output=True,
+                        text=True,
+                        timeout=2
+                    )
+                    if result.returncode == 0:
+                        services = result.stdout.strip().split("\n")
+                        return [service for service in services if service.startswith(prefix)]
+                    else:
+                        # Fallback when ros2 service list fails
+                        fallback_services = ["/add_two_ints", "/clear_params"]
+                        return [service for service in fallback_services if service.startswith(prefix)]
+                elif tool_subcommand == "list":
+                    # Flags handled by argparse
+                    return []
+                    
+            elif ros2_subcommand == "param":
+                if tool_subcommand in ["get", "set", "delete"]:
+                    # Complete with parameter names
+                    result = subprocess.run(
+                        ["ros2", "param", "list"],
+                        capture_output=True,
+                        text=True,
+                        timeout=2
+                    )
+                    if result.returncode == 0:
+                        params = result.stdout.strip().split("\n")
+                        return [param for param in params if param.startswith(prefix)]
+                    else:
+                        # Fallback when ros2 param list fails
+                        fallback_params = ["/use_sim_time", "/robot_description"]
+                        return [param for param in fallback_params if param.startswith(prefix)]
+                elif tool_subcommand == "list":
+                    # Flags handled by argparse
+                    return []
+            # Default: no completions (flags handled by argparse)
+            return []
+            
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
+            # No fallback needed - flags handled by argparse
+            return []
 
     return completer

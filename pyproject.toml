@@ -40,14 +40,14 @@ dev = [
 
 [project.scripts]
 rostopic = "ros_is_ros2.tools.rostopic:main_with_completion"
-rosnode = "ros_is_ros2.tools.rosnode:main"
-rosservice = "ros_is_ros2.tools.rosservice:main"
-rosparam = "ros_is_ros2.tools.rosparam:main"
-rosrun = "ros_is_ros2.tools.rosrun:main"
-rosbag = "ros_is_ros2.tools.rosbag:main"
-rosmsg = "ros_is_ros2.tools.rosmsg:main"
-rossrv = "ros_is_ros2.tools.rossrv:main"
-roslaunch = "ros_is_ros2.tools.roslaunch:main"
+rosnode = "ros_is_ros2.tools.rosnode:main_with_completion"
+rosservice = "ros_is_ros2.tools.rosservice:main_with_completion"
+rosparam = "ros_is_ros2.tools.rosparam:main_with_completion"
+rosrun = "ros_is_ros2.tools.rosrun:main_with_completion"
+rosbag = "ros_is_ros2.tools.rosbag:main_with_completion"
+rosmsg = "ros_is_ros2.tools.rosmsg:main_with_completion"
+rossrv = "ros_is_ros2.tools.rossrv:main_with_completion"
+roslaunch = "ros_is_ros2.tools.roslaunch:main_with_completion"
 roscore = "ros_is_ros2.tools.roscore:main"
 
 [project.urls]

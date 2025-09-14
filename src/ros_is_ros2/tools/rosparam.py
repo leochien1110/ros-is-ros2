@@ -1,17 +1,17 @@
-"""rostopic command - thin shim over 'ros2 topic'."""
+"""rosparam command - thin shim over 'ros2 param'."""
 
 import sys
 from ..generic_tool import main_with_completion as generic_main_with_completion, main_generic
 
 
 def main(args: list[str] | None = None) -> int:
-    """Main entry point for rostopic command."""
-    return main_generic("rostopic", args)
+    """Main entry point for rosparam command."""
+    return main_generic("rosparam", args)
 
 
 def main_with_completion():
     """Main entry point with argparse completion support."""
-    return generic_main_with_completion("rostopic")
+    return generic_main_with_completion("rosparam")
 
 
 if __name__ == "__main__":
