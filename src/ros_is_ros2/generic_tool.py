@@ -35,14 +35,6 @@ def _setup_completion_once():
             "",
             completion_marker,
             'eval "$(register-python-argcomplete rostopic)"',
-            'eval "$(register-python-argcomplete rosnode)"',
-            'eval "$(register-python-argcomplete rosservice)"',
-            'eval "$(register-python-argcomplete rosparam)"',
-            'eval "$(register-python-argcomplete rosmsg)"',
-            'eval "$(register-python-argcomplete rossrv)"',
-            'eval "$(register-python-argcomplete rosbag)"',
-            'eval "$(register-python-argcomplete rosrun)"',
-            'eval "$(register-python-argcomplete roslaunch)"',
             ""
         ]
         
@@ -138,7 +130,7 @@ def create_generic_parser(command_name: str):
         nargs="?",
         help=f"{command_name} subcommand"
     )
-    
+
     # Use dynamic completer for subcommands
     subcommand_arg.completer = DynamicSubcommandCompleter(command_name)
 
@@ -146,26 +138,12 @@ def create_generic_parser(command_name: str):
     if command_name in ["rostopic"]:
         # Topic-specific flags
         parser.add_argument("-t", "--show-types", action="store_true", help="show types")
-        parser.add_argument("-c", "--count-topics", action="store_true", help="count topics") 
+        parser.add_argument("-c", "--count-topics", action="store_true", help="count topics")
         parser.add_argument("-v", "--verbose", action="store_true", help="verbose output")
         parser.add_argument("-s", "--use-sim-time", action="store_true", help="use sim time")
         parser.add_argument("--no-daemon", action="store_true", help="no daemon")
         parser.add_argument("--spin-time", type=float, help="spin time")
         parser.add_argument("--include-hidden-topics", action="store_true", help="include hidden topics")
-    elif command_name in ["rosnode"]:
-        # Node-specific flags
-        parser.add_argument("-a", "--all", action="store_true", help="show all")
-        parser.add_argument("-c", "--count-nodes", action="store_true", help="count nodes")
-        parser.add_argument("-s", "--use-sim-time", action="store_true", help="use sim time")
-        parser.add_argument("--no-daemon", action="store_true", help="no daemon")
-        parser.add_argument("--spin-time", type=float, help="spin time")
-    elif command_name in ["rosservice"]:
-        # Service-specific flags
-        parser.add_argument("-t", "--show-types", action="store_true", help="show types")
-        parser.add_argument("-c", "--count-services", action="store_true", help="count services")
-        parser.add_argument("-s", "--use-sim-time", action="store_true", help="use sim time")
-        parser.add_argument("--no-daemon", action="store_true", help="no daemon")
-        parser.add_argument("--spin-time", type=float, help="spin time")
     else:
         # Generic flags for other commands
         parser.add_argument("-h", "--help", action="store_true", help="show help")
@@ -178,20 +156,21 @@ def create_generic_parser(command_name: str):
         help="Additional arguments for the subcommand"
     )
 
-    # Create a custom completer that handles topic/node/service names
+    # Create a custom completer that handles topic names
     def smart_completer(prefix: str, parsed_args, **kwargs):
-        """Smart completer for positional arguments (topics, nodes, services)."""
-        if not parsed_args.subcommand:
-            return []
-            
-        # Only provide topic/node/service completions, not flags
-        # (flags are handled automatically by argparse)
-        if prefix.startswith('-'):
-            return []
-
-        # Get the ros2 equivalent command  
+        """Smart completer for positional arguments (topics)."""
+        # Get the ros2 equivalent command
         ros2_cmd = discovery.get_ros1_equivalent(command_name)
         if not ros2_cmd:
+            return []
+
+        # Handle commands that don't use subcommands
+        if not hasattr(parsed_args, 'subcommand') or not parsed_args.subcommand:
+            return []
+
+        # Only provide topic completions, not flags
+        # (flags are handled automatically by argparse)
+        if prefix.startswith('-'):
             return []
 
         # Call our argument completer for non-flag completions
@@ -199,7 +178,7 @@ def create_generic_parser(command_name: str):
             ros2_cmd, parsed_args.subcommand
         )(prefix, parsed_args, **kwargs)
 
-    # Set the completer on the args argument
+    # Set the completer on the appropriate arguments
     args_arg.completer = smart_completer
 
     # Don't call autocomplete here - it will be called in main_with_completion
@@ -258,6 +237,7 @@ def main_generic(command_name: str, args: Optional[List[str]] = None) -> int:
 
 def main_with_completion(command_name: str):
     """Main entry point with argparse completion support."""
+    import sys
     parser = create_generic_parser(command_name)
     
     # Enable argcomplete before parsing
@@ -287,14 +267,8 @@ def main_with_completion(command_name: str):
             cmd_args.append("--show-types")
         if hasattr(args, 'count_topics') and args.count_topics:
             cmd_args.append("--count-topics")
-        if hasattr(args, 'count_nodes') and args.count_nodes:
-            cmd_args.append("--count-nodes")
-        if hasattr(args, 'count_services') and args.count_services:
-            cmd_args.append("--count-services")
         if hasattr(args, 'verbose') and args.verbose:
             cmd_args.append("--verbose")
-        if hasattr(args, 'all') and args.all:
-            cmd_args.append("--all")
         if hasattr(args, 'use_sim_time') and args.use_sim_time:
             cmd_args.append("--use-sim-time")
         if hasattr(args, 'no_daemon') and args.no_daemon:

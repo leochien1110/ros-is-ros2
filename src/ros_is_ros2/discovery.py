@@ -70,11 +70,7 @@ class ROS2CommandDiscovery:
     
     def _get_fallback_ros2_commands(self) -> List[str]:
         """Get fallback list of ros2 commands when discovery fails."""
-        return [
-            'action', 'bag', 'component', 'daemon', 'doctor', 'interface', 
-            'launch', 'lifecycle', 'multicast', 'node', 'param', 'pkg', 
-            'run', 'security', 'service', 'topic', 'wtf'
-        ]
+        return ['topic']
     
     @lru_cache(maxsize=128)
     def get_ros2_subcommands(self, command: str) -> List[str]:
@@ -132,39 +128,22 @@ class ROS2CommandDiscovery:
     def _get_fallback_subcommands(self, command: str) -> List[str]:
         """Get fallback subcommands when discovery fails."""
         fallback_subcommands = {
-            'topic': ['list', 'echo', 'hz', 'info', 'type', 'find', 'pub', 'bw', 'delay'],
-            'node': ['list', 'info'],
-            'service': ['list', 'call', 'type', 'find'],
-            'param': ['list', 'get', 'set', 'dump', 'load', 'delete', 'describe'],
-            'bag': ['record', 'play', 'info', 'reindex', 'convert'],
-            'interface': ['list', 'show', 'package', 'packages', 'proto'],
-            'launch': [],  # launch takes files, not subcommands
-            'run': [],     # run takes package and executable
-            'pkg': ['list', 'create', 'executables']
+            'topic': ['list', 'echo', 'hz', 'info', 'type', 'find', 'pub', 'bw', 'delay']
         }
         return fallback_subcommands.get(command, [])
     
     def get_ros1_equivalent(self, ros1_command: str) -> Optional[str]:
         """Map ros1 command (e.g., 'rostopic') to ros2 command (e.g., 'topic')."""
-        # Handle special cases first
-        special_mappings = {
-            'rosmsg': 'interface',
-            'rossrv': 'interface'
-        }
-        
-        if ros1_command in special_mappings:
-            return special_mappings[ros1_command]
-        
         # Extract the part after 'ros'
         if ros1_command.startswith('ros') and len(ros1_command) > 3:
             potential_ros2_cmd = ros1_command[3:]  # Remove 'ros' prefix
-            
+
             # Check if this maps to a valid ros2 command
             available_commands = self.get_ros2_commands()
-            
+
             if potential_ros2_cmd in available_commands:
                 return potential_ros2_cmd
-                
+
         return None
     
     def is_valid_ros1_command(self, ros1_command: str) -> bool:

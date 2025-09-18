@@ -11,17 +11,8 @@ def main(args: list[str] | None = None) -> int:
     print("ros-is-ros2: ROS1-style commands as thin shims over ROS2")
     print("Available commands:")
     print("  rostopic    - Topic introspection and manipulation")
-    print("  rosnode     - Node introspection")
-    print("  rosservice  - Service introspection and calling")
-    print("  rosparam    - Parameter manipulation")
-    print("  rosrun      - Run packages")
-    print("  rosbag      - Bag file handling")
-    print("  rosmsg      - Message type introspection")
-    print("  rossrv      - Service type introspection")
-    print("  roslaunch   - Launch files")
-    print("  roscore     - Migration guidance")
     print()
-    print("Each command is a thin wrapper around the corresponding 'ros2' command.")
+    print("This is a thin wrapper around the 'ros2 topic' command.")
     print("For example: 'rostopic list' maps to 'ros2 topic list'")
 
     return 0

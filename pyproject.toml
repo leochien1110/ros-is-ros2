@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "ros-is-ros2"
 dynamic = ["version"]
-description = "ROS1-style commands as thin shims over ROS2 to improve developer ergonomics"
+description = "ROS1-style rostopic command as a thin shim over ROS2 to improve developer ergonomics"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.10"
@@ -40,15 +40,6 @@ dev = [
 
 [project.scripts]
 rostopic = "ros_is_ros2.tools.rostopic:main_with_completion"
-rosnode = "ros_is_ros2.tools.rosnode:main_with_completion"
-rosservice = "ros_is_ros2.tools.rosservice:main_with_completion"
-rosparam = "ros_is_ros2.tools.rosparam:main_with_completion"
-rosrun = "ros_is_ros2.tools.rosrun:main_with_completion"
-rosbag = "ros_is_ros2.tools.rosbag:main_with_completion"
-rosmsg = "ros_is_ros2.tools.rosmsg:main_with_completion"
-rossrv = "ros_is_ros2.tools.rossrv:main_with_completion"
-roslaunch = "ros_is_ros2.tools.roslaunch:main_with_completion"
-roscore = "ros_is_ros2.tools.roscore:main"
 
 [project.urls]
 Homepage = "https://github.com/leo/ros-is-ros2"

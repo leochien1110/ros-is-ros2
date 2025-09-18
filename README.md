@@ -14,16 +14,16 @@ pip install ros-is-ros2
 
 ## Supported Commands
 
-- `rostopic` → `ros2 topic`
-- `rosnode` → `ros2 node`
-- `rosservice` → `ros2 service`
-- `rosparam` → `ros2 param`
-- `rosrun` → `ros2 run`
-- `rosbag` → `ros2 bag`
-- `rosmsg` → `ros2 interface`
-- `rossrv` → `ros2 interface`
-- `roslaunch` → `ros2 launch`
-- `roscore` → Migration guidance
+-[x] `rostopic` → `ros2 topic`
+-[x] `rosnode` → `ros2 node`
+-[] `rosservice` → `ros2 service`
+-[] `rosparam` → `ros2 param`
+-[] `rosbag` → `ros2 bag`
+-[] `rosmsg` → `ros2 interface`
+-[] `rossrv` → `ros2 interface`
+-[] `rosrun` → `ros2 run`
+-[] `roslaunch` → `ros2 launch`
+-[] `roscore` → Migration guidance
 
 ## Usage
 

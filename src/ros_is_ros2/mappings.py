@@ -42,35 +42,8 @@ class CommandMapping:
 
 
 # Special case mappings for commands that don't translate directly
-SPECIAL_MAPPINGS: Dict[str, Dict[str, CommandMapping]] = {
-    "rosmsg": {
-        "list": CommandMapping("ros2", "interface list"),
-        "show": CommandMapping("ros2", "interface show"),
-        "info": CommandMapping("ros2", "interface show"),
-        "package": CommandMapping("ros2", "interface package"),
-    },
-    "rossrv": {
-        "list": CommandMapping("ros2", "interface list"),
-        "show": CommandMapping("ros2", "interface show"),
-        "info": CommandMapping("ros2", "interface show"), 
-        "package": CommandMapping("ros2", "interface package"),
-    }
-}
+SPECIAL_MAPPINGS: Dict[str, Dict[str, CommandMapping]] = {}
 
-# Special flag handling for specific commands
-def _setup_special_mappings():
-    """Set up special flag mappings that don't translate directly."""
-    # rosmsg list should add -m flag for messages only
-    if "rosmsg" in SPECIAL_MAPPINGS and "list" in SPECIAL_MAPPINGS["rosmsg"]:
-        # For rosmsg list, we need to add the -m flag automatically
-        pass  # Handled in map_ros1_to_ros2_with_special_cases
-    
-    # rossrv list should add -s flag for services only
-    if "rossrv" in SPECIAL_MAPPINGS and "list" in SPECIAL_MAPPINGS["rossrv"]:
-        # For rossrv list, we need to add the -s flag automatically
-        pass  # Handled in map_ros1_to_ros2_with_special_cases
-
-_setup_special_mappings()
 
 
 def get_mapped_command(tool: str, subcommand: str) -> CommandMapping | None:
@@ -87,35 +60,7 @@ def get_mapped_command(tool: str, subcommand: str) -> CommandMapping | None:
 
 def map_ros1_to_ros2_with_special_cases(tool: str, args: list[str]) -> list[str] | None:
     """Map ROS1 command to ROS2 with special case handling."""
-    if not args:
-        return None
-
-    subcommand = args[0]
-    remaining_args = args[1:] if len(args) > 1 else []
-
-    # Check for special mappings first
-    special_mapping = get_mapped_command(tool, subcommand)
-    if special_mapping:
-        # Build the full ROS2 command
-        ros2_cmd = [special_mapping.ros2_command]
-        
-        # Split the ROS2 subcommand if it contains multiple parts  
-        ros2_parts = special_mapping.ros2_subcommand.split()
-        ros2_cmd.extend(ros2_parts)
-        
-        # Add special flags for specific commands
-        if tool == "rosmsg" and subcommand == "list":
-            ros2_cmd.append("-m")  # Messages only
-        elif tool == "rossrv" and subcommand == "list":
-            ros2_cmd.append("-s")  # Services only
-        
-        # Map the remaining arguments
-        mapped_args = special_mapping.map_arguments(remaining_args)
-        ros2_cmd.extend(mapped_args)
-        
-        return ros2_cmd[1:]  # Return without 'ros2' prefix as exec.py adds it
-    
-    # Use dynamic discovery for standard translations
+    # Use dynamic discovery for all translations
     return translate_ros1_to_ros2(tool, args)
 
 

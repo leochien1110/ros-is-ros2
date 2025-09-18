@@ -115,16 +115,12 @@ class ROS2CompletionDelegate:
                             # New section started, stop parsing options
                             break
 
-                # Also get topic/node/service names for appropriate commands
+                # Also get topic names for appropriate commands
                 if len(ros2_cmd_parts) >= 3:  # ros2 topic echo
                     entity_completions = []
                     if self.ros2_subcommand == "topic":
                         entity_completions = self._complete_topics(prefix)
-                    elif self.ros2_subcommand == "node":
-                        entity_completions = self._complete_nodes(prefix)
-                    elif self.ros2_subcommand == "service":
-                        entity_completions = self._complete_services(prefix)
-                    
+
                     completions.extend(entity_completions)
 
                 # Filter by prefix
@@ -143,10 +139,6 @@ class ROS2CompletionDelegate:
         """Provide static completions when dynamic completion fails."""
         if self.ros2_subcommand == "topic":
             return self._complete_topics(prefix)
-        elif self.ros2_subcommand == "node":
-            return self._complete_nodes(prefix)
-        elif self.ros2_subcommand == "service":
-            return self._complete_services(prefix)
         return []
 
     def _complete_topics(self, prefix: str) -> list[str]:
@@ -169,45 +161,6 @@ class ROS2CompletionDelegate:
             pass
         return []
 
-    def _complete_nodes(self, prefix: str) -> list[str]:
-        """Get node names from ros2 node list."""
-        try:
-            result = subprocess.run(
-                ["ros2", "node", "list"],
-                capture_output=True,
-                text=True,
-                timeout=3
-            )
-            if result.returncode == 0:
-                nodes = result.stdout.strip().split("\n")
-                return [node for node in nodes if node.startswith(prefix)]
-        except (
-            subprocess.TimeoutExpired,
-            subprocess.CalledProcessError,
-            FileNotFoundError,
-        ):
-            pass
-        return []
-
-    def _complete_services(self, prefix: str) -> list[str]:
-        """Get service names from ros2 service list."""
-        try:
-            result = subprocess.run(
-                ["ros2", "service", "list"],
-                capture_output=True,
-                text=True,
-                timeout=3
-            )
-            if result.returncode == 0:
-                services = result.stdout.strip().split("\n")
-                return [service for service in services if service.startswith(prefix)]
-        except (
-            subprocess.TimeoutExpired,
-            subprocess.CalledProcessError,
-            FileNotFoundError,
-        ):
-            pass
-        return []
 
 
 class SubcommandCompleter:
@@ -287,65 +240,6 @@ def create_ros2_argument_completer(ros2_subcommand: str, tool_subcommand: str):
                     # Return empty list for non-topic completions
                     return []
                     
-            elif ros2_subcommand == "node":
-                if tool_subcommand == "info":
-                    # Complete with node names
-                    result = subprocess.run(
-                        ["ros2", "node", "list"],
-                        capture_output=True,
-                        text=True,
-                        timeout=2
-                    )
-                    if result.returncode == 0:
-                        nodes = result.stdout.strip().split("\n")
-                        return [node for node in nodes if node.startswith(prefix)]
-                    else:
-                        # Fallback when ros2 node list fails
-                        fallback_nodes = ["/node1", "/node2"]
-                        return [node for node in fallback_nodes if node.startswith(prefix)]
-                elif tool_subcommand == "list":
-                    # Flags handled by argparse
-                    return []
-                    
-            elif ros2_subcommand == "service":
-                if tool_subcommand in ["call", "type"]:
-                    # Complete with service names
-                    result = subprocess.run(
-                        ["ros2", "service", "list"],
-                        capture_output=True,
-                        text=True,
-                        timeout=2
-                    )
-                    if result.returncode == 0:
-                        services = result.stdout.strip().split("\n")
-                        return [service for service in services if service.startswith(prefix)]
-                    else:
-                        # Fallback when ros2 service list fails
-                        fallback_services = ["/add_two_ints", "/clear_params"]
-                        return [service for service in fallback_services if service.startswith(prefix)]
-                elif tool_subcommand == "list":
-                    # Flags handled by argparse
-                    return []
-                    
-            elif ros2_subcommand == "param":
-                if tool_subcommand in ["get", "set", "delete"]:
-                    # Complete with parameter names
-                    result = subprocess.run(
-                        ["ros2", "param", "list"],
-                        capture_output=True,
-                        text=True,
-                        timeout=2
-                    )
-                    if result.returncode == 0:
-                        params = result.stdout.strip().split("\n")
-                        return [param for param in params if param.startswith(prefix)]
-                    else:
-                        # Fallback when ros2 param list fails
-                        fallback_params = ["/use_sim_time", "/robot_description"]
-                        return [param for param in fallback_params if param.startswith(prefix)]
-                elif tool_subcommand == "list":
-                    # Flags handled by argparse
-                    return []
             # Default: no completions (flags handled by argparse)
             return []
             
