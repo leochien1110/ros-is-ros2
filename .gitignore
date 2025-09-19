@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Release scripts (customize as needed)
+create-release.sh
+
+# Maintainer documentation
+MAINTAINER.md

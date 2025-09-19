@@ -69,15 +69,50 @@ def remove_block(rc: Path):
         rc.write_text(pre + post)
 
 def is_bash_completion_installed() -> bool:
-    """Check if bash-completion is already installed."""
-    # Check for common bash-completion files
-    completion_paths = [
-        "/etc/bash_completion",
-        "/usr/share/bash-completion/bash_completion",
+    """Check if bash-completion is already installed and functional."""
+    # First check if bash-completion package is installed (Linux)
+    try:
+        result = subprocess.run(
+            ["dpkg", "-l", "bash-completion"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode == 0 and "ii" in result.stdout:
+            return True
+    except (subprocess.SubprocessError, FileNotFoundError):
+        pass
+
+    # Check for the main bash-completion file (most reliable indicator)
+    main_completion_file = "/usr/share/bash-completion/bash_completion"
+    if Path(main_completion_file).exists():
+        return True
+    
+    # Check for other platform-specific locations
+    other_paths = [
         "/usr/local/etc/bash_completion",  # macOS homebrew
-        "/opt/homebrew/etc/bash_completion"  # macOS Apple Silicon homebrew
+        "/opt/homebrew/etc/bash_completion",  # macOS Apple Silicon homebrew
+        "/usr/local/share/bash-completion/bash_completion"
     ]
-    return any(Path(path).exists() for path in completion_paths)
+    
+    if any(Path(path).exists() for path in other_paths):
+        return True
+    
+    # /etc/bash_completion often just sources the main file, so check if it's functional
+    etc_completion = Path("/etc/bash_completion")
+    if etc_completion.exists():
+        try:
+            content = etc_completion.read_text().strip()
+            # If it just sources the main file, check if that file exists
+            if content.startswith(". /usr/share/bash-completion/bash_completion"):
+                return Path("/usr/share/bash-completion/bash_completion").exists()
+            # If it has actual content, consider it installed
+            elif len(content) > 100:  # Arbitrary threshold for "real" content
+                return True
+        except (OSError, UnicodeDecodeError):
+            pass
+    
+    return False
 
 def detect_package_manager() -> str | None:
     """Detect the available package manager."""
@@ -131,21 +166,31 @@ def install_bash_completion() -> bool:
         cmd = install_commands[package_manager]
         print(f"Running: {' '.join(cmd)}")
         
-        # For brew, don't use sudo
+        # For brew, don't use sudo and capture output
         if package_manager == "brew":
             result = subprocess.run(cmd, check=True, capture_output=True, text=True)
         else:
             # Check if we can run sudo
             if os.geteuid() == 0:  # Already root
                 cmd = [c for c in cmd if c != "sudo"]  # Remove sudo if already root
-            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+                result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+            else:
+                # For sudo commands, don't capture output so password prompt works
+                # Use stdin=None, stdout=None, stderr=None to inherit terminal
+                result = subprocess.run(cmd, check=True, stdin=None, stdout=None, stderr=None)
         
         print("✓ bash-completion installed successfully")
         return True
         
     except subprocess.CalledProcessError as e:
         print(f"⚠ Failed to install bash-completion: {e}")
-        print("You may need to install it manually or run with appropriate permissions")
+        if package_manager != "brew" and os.geteuid() != 0:
+            print("This might be due to:")
+            print("  - Incorrect sudo password")
+            print("  - Network connectivity issues")
+            print("  - Package repository problems")
+        print("You can install it manually using:")
+        print(f"  {' '.join(cmd)}")
         return False
     except Exception as e:
         print(f"⚠ Error installing bash-completion: {e}")

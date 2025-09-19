@@ -2,7 +2,22 @@
 # This file is sourced by your shell RC. Do not execute directly.
 
 # 1) Load bash-completion (needed for programmable completion)
-if [ -f /etc/bash_completion ]; then . /etc/bash_completion; fi
+# Try multiple common locations for bash-completion
+if [ -f /etc/bash_completion ]; then
+  . /etc/bash_completion 2>/dev/null
+elif [ -f /usr/share/bash-completion/bash_completion ]; then
+  . /usr/share/bash-completion/bash_completion 2>/dev/null
+elif [ -f /etc/bash/bash_completion ]; then
+  . /etc/bash/bash_completion 2>/dev/null
+elif [ -f /usr/local/share/bash-completion/bash_completion ]; then
+  . /usr/local/share/bash-completion/bash_completion 2>/dev/null
+else
+  # If no bash-completion found, try to enable basic completion
+  if [ -n "$BASH_VERSION" ] && shopt -q progcomp 2>/dev/null; then
+    # Basic completion is available, continue
+    true
+  fi
+fi
 
 # 2) Source ROS 2 and register argcomplete for `ros2`
 # Try to find and source ROS 2 setup

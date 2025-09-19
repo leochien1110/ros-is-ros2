@@ -6,9 +6,19 @@ ROS 1-style CLI aliases for ROS 2, with working autocompletion.
 
 This package provides familiar ROS1 commands (`rostopic`, `rosnode`, etc.) that act as aliases around their ROS2 equivalents (`ros2 topic`, `ros2 node`, etc.). Unlike complex Python wrappers, this uses simple shell aliases with the `complete-alias` tool to provide full tab completion.
 
-> **Note**: This package is currently available for installation from source only. PyPI distribution is coming soon.
+> **Note**: Pre-built wheel files are available from [GitHub Releases](https://github.com/leochien1110/ros-is-ros2/releases). PyPI distribution is coming soon.
 
 ## Installation
+
+### From GitHub Releases (Recommended)
+Download the latest wheel file from [GitHub Releases](https://github.com/leochien1110/ros-is-ros2/releases):
+
+```bash
+# Download ros_is_ros2-X.X.X-py3-none-any.whl from releases, then:
+pip install ros_is_ros2-0.2.0-py3-none-any.whl
+ros-is-ros2 install    # Automatically installs bash-completion if needed
+source ~/.bashrc       # or ~/.zshrc
+```
 
 ### From PyPI (when published)
 ```bash
@@ -21,7 +31,7 @@ source ~/.bashrc       # or ~/.zshrc
 
 #### Option 1: Direct Install (Recommended)
 ```bash
-git clone https://github.com/leo/ros-is-ros2.git
+git clone https://github.com/leochien1110/ros-is-ros2.git
 cd ros-is-ros2
 pip install .
 ros-is-ros2 install
@@ -30,7 +40,7 @@ source ~/.bashrc       # or ~/.zshrc
 
 #### Option 2: Build and Install Wheel
 ```bash
-git clone https://github.com/leo/ros-is-ros2.git
+git clone https://github.com/leochien1110/ros-is-ros2.git
 cd ros-is-ros2
 pip install build
 python -m build
@@ -42,7 +52,7 @@ source ~/.bashrc       # or ~/.zshrc
 #### Option 3: Development Install (Editable)
 For developers who want to make changes:
 ```bash
-git clone https://github.com/leo/ros-is-ros2.git
+git clone https://github.com/leochien1110/ros-is-ros2.git
 cd ros-is-ros2
 python -m pip install -e .   # Editable install (use python -m pip for better compatibility)
 ros-is-ros2 install
@@ -54,7 +64,7 @@ ros-is-ros2 --help           # Make changes to cli.py and run again to see updat
 
 ### One-Line Install (from source)
 ```bash
-git clone https://github.com/leo/ros-is-ros2.git && cd ros-is-ros2 && pip install . && ros-is-ros2 install && source ~/.bashrc
+git clone https://github.com/leochien1110/ros-is-ros2.git && cd ros-is-ros2 && pip install . && ros-is-ros2 install && source ~/.bashrc
 ```
 
 ### Prerequisites for Source Install
@@ -65,7 +75,8 @@ git clone https://github.com/leo/ros-is-ros2.git && cd ros-is-ros2 && pip instal
 
 ### Troubleshooting Local Install
 
-#### Quick Fix for Most Issues
+<details>
+<summary><strong>🔧 Quick Fix for Most Issues</strong></summary>
 
 **TL;DR**: If `pip install -e .` fails, try this first:
 ```bash
@@ -74,22 +85,28 @@ python -m pip install -e .
 ```
 
 **Why**: Most editable install failures are caused by old pip versions that don't work well with modern setuptools.
+</details>
 
----
+<details>
+<summary><strong>🔒 Permission Issues</strong></summary>
 
-#### Permission Issues
 If you get permission errors during pip install:
 ```bash
 pip install --user .    # Install to user directory
 ```
+</details>
 
-#### Build Dependencies Missing
+<details>
+<summary><strong>📦 Build Dependencies Missing</strong></summary>
+
 If the build step fails, ensure you have the build package:
 ```bash
 pip install build wheel setuptools
 ```
+</details>
 
-#### Editable Install Failures (`pip install -e .`)
+<details>
+<summary><strong>⚠️ Editable Install Failures (`pip install -e .`)</strong></summary>
 
 **Common Issue**: Version mismatch between pip and setuptools causing editable install to fail.
 
@@ -125,8 +142,11 @@ pip install .
 # Method B: Build method
 python -m build && pip install dist/ros_is_ros2-*.whl
 ```
+</details>
 
-#### ROS Environment Issues
+<details>
+<summary><strong>🤖 ROS Environment Issues</strong></summary>
+
 If you're in a ROS environment (ROS_DISTRO set), it can interfere with Python packaging:
 
 **Check if in ROS environment**:
@@ -143,8 +163,11 @@ python -m pip install -e .
 unset ROS_DISTRO
 pip install -e .
 ```
+</details>
 
-#### Virtual Environment Issues
+<details>
+<summary><strong>🌐 Virtual Environment Issues</strong></summary>
+
 If virtual environment creation fails:
 ```bash
 # Ubuntu/Debian: Install venv package
@@ -155,6 +178,7 @@ python -m venv venv
 source venv/bin/activate
 pip install -e .
 ```
+</details>
 
 ### Verifying Installation
 
@@ -170,26 +194,6 @@ pip list | grep ros-is-ros2
 ros-is-ros2 install
 source ~/.bashrc
 rostopic --help    # Should show ROS2 topic help
-```
-
-### Why Two-Stage Installation?
-
-The installation process requires two steps because:
-
-1. **Shell Configuration**: The tool needs to add a source line to your shell configuration file (`.bashrc` or `.zshrc`)
-2. **User Consent**: Automatically modifying configuration files during `pip install` can be surprising and problematic
-3. **Environment Safety**: Keeps the installation safe for CI, containers, and automated environments
-4. **Clean Uninstall**: Provides a clean way to remove the integration with `ros-is-ros2 uninstall`
-5. **Dependency Installation**: Automatically installs `bash-completion` if needed (bash users only)
-
-The `ros-is-ros2 install` command:
-- Detects your system and installs `bash-completion` if needed (Ubuntu/Debian, CentOS/RHEL/Fedora, macOS supported)
-- Safely adds this block to your shell config:
-```bash
-# >>> ros-is-ros2 >>>
-# ROS 1-style shims for ROS 2
-source "/path/to/ros-is-ros2/shims/bash.sh"
-# <<< ros-is-ros2 <<<
 ```
 
 ## Supported Commands
@@ -269,146 +273,6 @@ ros-is-ros2/
     └── complete_alias.bash  # Vendored completion helper
 ```
 
-## Development Status
-
-This is a complete rewrite using shell aliases instead of Python wrappers. The approach is much simpler and more reliable than the previous implementation.
-
-## Publishing to PyPI
-
-This section is for maintainers who want to publish new versions of the package to PyPI.
-
-### Prerequisites
-
-1. **PyPI Account**: Create accounts on both [Test PyPI](https://test.pypi.org/account/register/) and [PyPI](https://pypi.org/account/register/)
-2. **API Tokens**: Generate API tokens for both repositories:
-   - [Test PyPI tokens](https://test.pypi.org/manage/account/#api-tokens)
-   - [PyPI tokens](https://pypi.org/manage/account/#api-tokens)
-3. **Build Tools**: Install required build tools:
-   ```bash
-   pip install --upgrade build twine
-   ```
-
-### Publishing Process
-
-#### 1. Update Version
-Edit the version in `pyproject.toml`:
-```toml
-[project]
-version = "0.3.0"  # Update to your new version
-```
-
-#### 2. Build the Package
-```bash
-# Clean any previous builds
-rm -rf dist/ build/ *.egg-info
-
-# Build the package
-python -m build
-```
-
-This creates both `.tar.gz` (source) and `.whl` (wheel) files in the `dist/` directory.
-
-#### 3. Test on Test PyPI (Recommended)
-```bash
-# Upload to Test PyPI first
-python -m twine upload --repository testpypi dist/*
-
-# Test installation from Test PyPI
-pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ ros-is-ros2
-```
-
-#### 4. Publish to PyPI
-Once tested successfully:
-```bash
-# Upload to PyPI
-python -m twine upload dist/*
-```
-
-#### 5. Create Git Tag
-```bash
-git tag v0.3.0  # Match the version number
-git push origin v0.3.0
-```
-
-### Authentication Setup
-
-Configure your credentials using one of these methods:
-
-**Option 1: Using API Tokens (Recommended)**
-```bash
-# Create ~/.pypirc file
-cat > ~/.pypirc << EOF
-[distutils]
-index-servers = pypi testpypi
-
-[pypi]
-username = __token__
-password = pypi-YOUR_API_TOKEN_HERE
-
-[testpypi]
-repository = https://test.pypi.org/legacy/
-username = __token__
-password = pypi-YOUR_TEST_API_TOKEN_HERE
-EOF
-```
-
-**Option 2: Environment Variables**
-```bash
-export TWINE_USERNAME=__token__
-export TWINE_PASSWORD=pypi-YOUR_API_TOKEN_HERE
-```
-
-### Automated Publishing with GitHub Actions
-
-For automated releases, you can use GitHub Actions. Create `.github/workflows/publish.yml`:
-
-```yaml
-name: Publish to PyPI
-
-on:
-  release:
-    types: [published]
-
-jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    - name: Install build dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install build twine
-    - name: Build package
-      run: python -m build
-    - name: Publish to PyPI
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-      run: twine upload dist/*
-```
-
-Add your PyPI API token as `PYPI_API_TOKEN` in your repository secrets.
-
-### Version Management
-
-Follow [Semantic Versioning](https://semver.org/):
-- **MAJOR** version when you make incompatible API changes
-- **MINOR** version when you add functionality in a backwards compatible manner  
-- **PATCH** version when you make backwards compatible bug fixes
-
-### Verification
-
-After publishing to PyPI, verify the installation works:
-```bash
-pip install ros-is-ros2==0.3.0  # Use your new version
-ros-is-ros2 --help
-```
-
-For local/source installations, see the "Verifying Installation" section above.
 
 ## License and Attribution
 
