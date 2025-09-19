@@ -1,3 +1,3 @@
-"""ros-is-ros2: ROS1-style commands as thin shims over ROS2."""
+"""ros-is-ros2: ROS 1-style CLI aliases for ROS 2."""
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
