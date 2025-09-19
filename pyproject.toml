@@ -52,9 +52,9 @@ ros_is_ros2 = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/leo/ros-is-ros2"
-"Bug Reports" = "https://github.com/leo/ros-is-ros2/issues"
-"Source" = "https://github.com/leo/ros-is-ros2"
+Homepage = "https://github.com/leochien1110/ros-is-ros2"
+"Bug Reports" = "https://github.com/leochien1110/ros-is-ros2/issues"
+"Source" = "https://github.com/leochien1110/ros-is-ros2"
 
 [tool.ruff]
 line-length = 88

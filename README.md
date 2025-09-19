@@ -6,9 +6,19 @@ ROS 1-style CLI aliases for ROS 2, with working autocompletion.
 
 This package provides familiar ROS1 commands (`rostopic`, `rosnode`, etc.) that act as aliases around their ROS2 equivalents (`ros2 topic`, `ros2 node`, etc.). Unlike complex Python wrappers, this uses simple shell aliases with the `complete-alias` tool to provide full tab completion.
 
-> **Note**: This package is currently available for installation from source only. PyPI distribution is coming soon.
+> **Note**: Pre-built wheel files are available from [GitHub Releases](https://github.com/leochien1110/ros-is-ros2/releases). PyPI distribution is coming soon.
 
 ## Installation
+
+### From GitHub Releases (Recommended)
+Download the latest wheel file from [GitHub Releases](https://github.com/leochien1110/ros-is-ros2/releases):
+
+```bash
+# Download ros_is_ros2-X.X.X-py3-none-any.whl from releases, then:
+pip install ros_is_ros2-0.2.0-py3-none-any.whl
+ros-is-ros2 install    # Automatically installs bash-completion if needed
+source ~/.bashrc       # or ~/.zshrc
+```
 
 ### From PyPI (when published)
 ```bash
@@ -21,7 +31,7 @@ source ~/.bashrc       # or ~/.zshrc
 
 #### Option 1: Direct Install (Recommended)
 ```bash
-git clone https://github.com/leo/ros-is-ros2.git
+git clone https://github.com/leochien1110/ros-is-ros2.git
 cd ros-is-ros2
 pip install .
 ros-is-ros2 install
@@ -30,7 +40,7 @@ source ~/.bashrc       # or ~/.zshrc
 
 #### Option 2: Build and Install Wheel
 ```bash
-git clone https://github.com/leo/ros-is-ros2.git
+git clone https://github.com/leochien1110/ros-is-ros2.git
 cd ros-is-ros2
 pip install build
 python -m build
@@ -42,7 +52,7 @@ source ~/.bashrc       # or ~/.zshrc
 #### Option 3: Development Install (Editable)
 For developers who want to make changes:
 ```bash
-git clone https://github.com/leo/ros-is-ros2.git
+git clone https://github.com/leochien1110/ros-is-ros2.git
 cd ros-is-ros2
 python -m pip install -e .   # Editable install (use python -m pip for better compatibility)
 ros-is-ros2 install
@@ -54,7 +64,7 @@ ros-is-ros2 --help           # Make changes to cli.py and run again to see updat
 
 ### One-Line Install (from source)
 ```bash
-git clone https://github.com/leo/ros-is-ros2.git && cd ros-is-ros2 && pip install . && ros-is-ros2 install && source ~/.bashrc
+git clone https://github.com/leochien1110/ros-is-ros2.git && cd ros-is-ros2 && pip install . && ros-is-ros2 install && source ~/.bashrc
 ```
 
 ### Prerequisites for Source Install
@@ -273,9 +283,55 @@ ros-is-ros2/
 
 This is a complete rewrite using shell aliases instead of Python wrappers. The approach is much simpler and more reliable than the previous implementation.
 
-## Publishing to PyPI
+## Building and Releasing
 
-This section is for maintainers who want to publish new versions of the package to PyPI.
+This section is for maintainers who want to create releases and publish packages.
+
+### Building Distribution Files
+
+Create wheel and source distribution files:
+
+```bash
+# Clean previous builds
+rm -rf dist/ build/ src/*.egg-info/
+
+# Build distributions  
+python -m build
+
+# Check what was created
+ls -la dist/
+# Should show:
+# ros_is_ros2-X.X.X-py3-none-any.whl  (wheel - for easy installation)
+# ros_is_ros2-X.X.X.tar.gz            (source - for pip install from source)
+```
+
+### Creating GitHub Releases
+
+#### Option 1: Web Interface (Recommended)
+1. Go to [GitHub Releases](https://github.com/leochien1110/ros-is-ros2/releases)
+2. Click "Create a new release"
+3. Tag: `vX.X.X` (e.g., `v0.2.0`)
+4. Title: `ros-is-ros2 vX.X.X`
+5. Upload both files from `dist/` directory
+6. Add release notes (see template in `create-release.sh`)
+
+#### Option 2: GitHub CLI (Automated)
+```bash
+# Install GitHub CLI if needed
+sudo apt install gh
+
+# Create release with files attached
+./create-release.sh v0.2.0
+```
+
+**Users can then install directly from releases:**
+```bash
+pip install https://github.com/leochien1110/ros-is-ros2/releases/download/v0.2.0/ros_is_ros2-0.2.0-py3-none-any.whl
+```
+
+### Publishing to PyPI
+
+This section is for publishing to the official Python Package Index.
 
 ### Prerequisites
 
