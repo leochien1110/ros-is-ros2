@@ -1,33 +1,33 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "ros-is-ros2"
-dynamic = ["version"]
-description = "ROS1-style rostopic command as a thin shim over ROS2 to improve developer ergonomics"
+version = "0.2.0"
+description = "ROS 1-style CLI aliases for ROS 2, with working autocompletion."
 readme = "README.md"
-license = {text = "Apache-2.0"}
-requires-python = ">=3.10"
+license = {text = "GPL-3.0-or-later"}
+requires-python = ">=3.8"
 authors = [
     { name = "ros-is-ros2 contributors" },
 ]
-keywords = ["ros", "ros2", "robotics", "cli", "wrapper"]
+keywords = ["ros", "ros2", "robotics", "cli", "wrapper", "alias", "completion"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Robotics",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-dependencies = [
-    "argcomplete>=2.0.0",
-]
+dependencies = []
 
 [project.optional-dependencies]
 dev = [
@@ -39,18 +39,22 @@ dev = [
 ]
 
 [project.scripts]
-rostopic = "ros_is_ros2.tools.rostopic:main_with_completion"
+ros-is-ros2 = "ros_is_ros2.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["ros_is_ros2"]
+
+[tool.setuptools.package-data]
+ros_is_ros2 = [
+  "shims/*.sh",
+  "third_party/complete_alias.bash"
+]
 
 [project.urls]
 Homepage = "https://github.com/leo/ros-is-ros2"
 "Bug Reports" = "https://github.com/leo/ros-is-ros2/issues"
 "Source" = "https://github.com/leo/ros-is-ros2"
-
-[tool.hatch.version]
-path = "src/ros_is_ros2/__init__.py"
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/ros_is_ros2"]
 
 [tool.ruff]
 line-length = 88
