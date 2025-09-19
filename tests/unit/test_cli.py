@@ -3,21 +3,21 @@
 import os
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 
 from ros_is_ros2.cli import (
-    main,
-    rc_file,
-    shim_path,
-    detect_shell,
-    add_block,
-    remove_block,
-    is_bash_completion_installed,
-    detect_package_manager,
     BLOCK_BEGIN,
     BLOCK_END,
+    add_block,
+    detect_package_manager,
+    detect_shell,
+    is_bash_completion_installed,
+    main,
+    rc_file,
+    remove_block,
+    shim_path,
 )
 
 
@@ -72,71 +72,71 @@ class TestBlockManagement:
 
     def test_add_block_new_file(self):
         """Test adding block to new file."""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
             tmp_path = Path(tmp.name)
-        
+
         try:
             add_block(tmp_path, "/bin/bash", Path("/test/shim.sh"))
             content = tmp_path.read_text()
-            
+
             assert BLOCK_BEGIN in content
             assert BLOCK_END in content
             assert '. "/test/shim.sh"' in content
-            
+
         finally:
             tmp_path.unlink()
 
     def test_add_block_existing_file(self):
         """Test adding block to existing file."""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
             tmp.write("existing content\n")
             tmp_path = Path(tmp.name)
-        
+
         try:
             add_block(tmp_path, "/bin/bash", Path("/test/shim.sh"))
             content = tmp_path.read_text()
-            
+
             assert "existing content" in content
             assert BLOCK_BEGIN in content
             assert BLOCK_END in content
-            
+
         finally:
             tmp_path.unlink()
 
     def test_add_block_idempotent(self):
         """Test that adding block twice is idempotent."""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
             tmp_path = Path(tmp.name)
-        
+
         try:
             # Add block twice
             add_block(tmp_path, "/bin/bash", Path("/test/shim.sh"))
             add_block(tmp_path, "/bin/bash", Path("/test/shim.sh"))
-            
+
             content = tmp_path.read_text()
             # Should only appear once
             assert content.count(BLOCK_BEGIN) == 1
             assert content.count(BLOCK_END) == 1
-            
+
         finally:
             tmp_path.unlink()
 
     def test_remove_block(self):
         """Test removing block from file."""
-        with tempfile.NamedTemporaryFile(mode='w', delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp:
             content = f"before\n{BLOCK_BEGIN}\nblock content\n{BLOCK_END}\nafter\n"
             tmp.write(content)
             tmp_path = Path(tmp.name)
-        
+
         try:
             remove_block(tmp_path)
             result = tmp_path.read_text()
-            
+
             assert BLOCK_BEGIN not in result
             assert BLOCK_END not in result
             assert "before" in result
             assert "after" in result
-            
+
         finally:
             tmp_path.unlink()
 
@@ -155,10 +155,12 @@ class TestBashCompletionDetection:
         mock_exists.return_value = True
         assert is_bash_completion_installed() is True
 
+    @patch("ros_is_ros2.cli.subprocess.run")
     @patch("ros_is_ros2.cli.Path.exists")
-    def test_is_bash_completion_installed_false(self, mock_exists):
+    def test_is_bash_completion_installed_false(self, mock_exists, mock_run):
         """Test detecting missing bash completion."""
         mock_exists.return_value = False
+        mock_run.side_effect = FileNotFoundError()
         assert is_bash_completion_installed() is False
 
 
@@ -174,7 +176,9 @@ class TestPackageManagerDetection:
     @patch("ros_is_ros2.cli.shutil.which")
     def test_detect_package_manager_brew(self, mock_which):
         """Test detecting brew package manager."""
-        mock_which.side_effect = lambda cmd: "/usr/local/bin/brew" if cmd == "brew" else None
+        mock_which.side_effect = lambda cmd: (
+            "/usr/local/bin/brew" if cmd == "brew" else None
+        )
         assert detect_package_manager() == "brew"
 
     @patch("ros_is_ros2.cli.shutil.which")
@@ -192,7 +196,7 @@ class TestMainCLI:
     def test_main_install(self, mock_install_bash, mock_add_block):
         """Test main install command."""
         mock_install_bash.return_value = True
-        
+
         with patch("sys.argv", ["ros-is-ros2", "install"]):
             result = main()
             assert result == 0
@@ -210,7 +214,7 @@ class TestMainCLI:
     def test_main_print_path(self, mock_shim_path):
         """Test main print-path command."""
         mock_shim_path.return_value = Path("/test/path")
-        
+
         with patch("sys.argv", ["ros-is-ros2", "print-path"]):
             with patch("builtins.print") as mock_print:
                 result = main()

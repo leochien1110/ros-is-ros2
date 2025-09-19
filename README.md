@@ -2,13 +2,38 @@
 
 ROS 1-style CLI aliases for ROS 2, with working autocompletion.
 
-## Overview
-
-This package provides familiar ROS1 commands (`rostopic`, `rosnode`, etc.) that act as aliases around their ROS2 equivalents (`ros2 topic`, `ros2 node`, etc.). Unlike complex Python wrappers, this uses simple shell aliases with the `complete-alias` tool to provide full tab completion.
-
 > **Note**: Pre-built wheel files are available from [GitHub Releases](https://github.com/leochien1110/ros-is-ros2/releases). PyPI distribution is coming soon.
 
+## Overview
+
+This package provides familiar ROS1 commands (`rostopic`, `rosnode`, etc.) that act as aliases for their ROS2 equivalents (`ros2 topic`, `ros2 node`, etc.). Unlike complex Python wrappers, this project uses a lightweight approach for maximum compatibility and performance:
+
+1.  **Simple Aliases**: Uses native shell aliases (`alias rostopic='ros2 topic'`) instead of Python wrappers. This means there is no performance overhead.
+2.  **Complete-Alias**: Leverages the powerful `cykerway/complete-alias` tool (vendored in this project) to provide full, programmable tab completion for all aliased commands.
+3.  **Shell Integration**: A simple installation script adds a single line to your shell RC file (`.bashrc` or `.zshrc`) to source the necessary shims.
+4.  **Cross-Shell**: Supports both Bash and Zsh with tailored shims for each.
+
+The core architecture is straightforward:
+
+```
+ros-is-ros2/
+├── cli.py                 # Installation CLI
+├── shims/
+│   ├── bash.sh           # Bash aliases + completion setup
+│   └── zsh.sh            # Zsh functions + completion setup
+└── third_party/
+    └── complete_alias.bash  # Vendored completion helper
+```
+
 ## Installation
+
+### Requirements
+
+- ROS2 (Humble, Iron, Jazzy, or Rolling)
+- Python 3.8+
+- Bash or Zsh shell
+
+**Note**: For bash users, `bash-completion` will be automatically installed during setup for an optimal tab completion experience.
 
 ### From GitHub Releases (Recommended)
 Download the latest wheel file from [GitHub Releases](https://github.com/leochien1110/ros-is-ros2/releases):
@@ -28,50 +53,102 @@ source ~/.bashrc       # or ~/.zshrc
 ```
 
 ### From Source/Local Development
-
-#### Option 1: Direct Install (Recommended)
-```bash
-git clone https://github.com/leochien1110/ros-is-ros2.git
-cd ros-is-ros2
-pip install .
-ros-is-ros2 install
-source ~/.bashrc       # or ~/.zshrc
-```
-
-#### Option 2: Build and Install Wheel
-```bash
-git clone https://github.com/leochien1110/ros-is-ros2.git
-cd ros-is-ros2
-pip install build
-python -m build
-pip install dist/ros_is_ros2-*.whl
-ros-is-ros2 install
-source ~/.bashrc       # or ~/.zshrc
-```
-
-#### Option 3: Development Install (Editable)
-For developers who want to make changes:
-```bash
-git clone https://github.com/leochien1110/ros-is-ros2.git
-cd ros-is-ros2
-python -m pip install -e .   # Editable install (use python -m pip for better compatibility)
-ros-is-ros2 install
-source ~/.bashrc             # or ~/.zshrc
-
-# Test editable behavior - changes to source code are immediately reflected
-ros-is-ros2 --help           # Make changes to cli.py and run again to see updates
-```
-
-### One-Line Install (from source)
-```bash
-git clone https://github.com/leochien1110/ros-is-ros2.git && cd ros-is-ros2 && pip install . && ros-is-ros2 install && source ~/.bashrc
-```
-
-### Prerequisites for Source Install
+#### Prerequisites for Source Install
 
 - Git (to clone the repository)
 - Python 3.8+ with pip
 - Build tools (automatically installed when needed)
+
+#### Installation Methods
+1.  **Direct Install (Recommended)**
+    ```bash
+    git clone https://github.com/leochien1110/ros-is-ros2.git
+    cd ros-is-ros2
+    pip install .
+    ros-is-ros2 install
+    source ~/.bashrc       # or ~/.zshrc
+    ```
+
+2.  **Build and Install Wheel**
+    ```bash
+    git clone https://github.com/leochien1110/ros-is-ros2.git
+    cd ros-is-ros2
+    pip install build
+    python -m build
+    pip install dist/ros_is_ros2-*.whl
+    ros-is-ros2 install
+    source ~/.bashrc       # or ~/.zshrc
+    ```
+
+3.  **Development Install (Editable)**
+    For developers who want to make changes:
+    ```bash
+    git clone https://github.com/leochien1110/ros-is-ros2.git
+    cd ros-is-ros2
+    python -m pip install -e .   # Editable install (use python -m pip for better compatibility)
+    ros-is-ros2 install
+    source ~/.bashrc             # or ~/.zshrc
+
+    # Test editable behavior - changes to source code are immediately reflected
+    ros-is-ros2 --help           # Make changes to cli.py and run again to see updates
+    ```
+
+4.  **One-Line Install (from source)**
+    ```bash
+    git clone https://github.com/leochien1110/ros-is-ros2.git && cd ros-is-ros2 && pip install . && ros-is-ros2 install && source ~/.bashrc
+    ```
+
+### Verifying Installation
+
+After installing from source, verify everything works:
+```bash
+# Check the command is available
+ros-is-ros2 --help
+
+# Check version
+pip list | grep ros-is-ros2
+
+# Test the full workflow
+ros-is-ros2 install
+source ~/.bashrc
+rostopic --help    # Should show ROS2 topic help
+```
+
+## Usage
+
+After installation, use ROS1 commands as you normally would. All commands support full tab completion for subcommands, topics, nodes, packages, and executables.
+
+### Supported Commands
+
+- `rostopic` → `ros2 topic`
+- `rosnode` → `ros2 node`
+- `rosservice` → `ros2 service`
+- `rosparam` → `ros2 param`
+- `rosbag` → `ros2 bag`
+- `rosrun` → `ros2 run`
+- `roslaunch` → `ros2 launch`
+- `rospack` → `ros2 pkg`
+- `rossrv` → `ros2 interface`
+- `rosmsg` → `ros2 interface`
+
+### Examples
+
+```bash
+rostopic list<TAB>        # Tab completion for subcommands
+rostopic echo /chatter<TAB>  # Tab completion for topics
+rosnode list
+rosrun demo_nodes_cpp talker<TAB>  # Tab completion for packages/executables
+```
+
+## Support
+
+### Uninstallation
+
+```bash
+ros-is-ros2 uninstall
+pip uninstall ros-is-ros2
+source ~/.bashrc    # or ~/.zshrc
+```
 
 ### Troubleshooting Local Install
 
@@ -180,99 +257,87 @@ pip install -e .
 ```
 </details>
 
-### Verifying Installation
+## Development
 
-After installing from source, verify everything works:
+### Setting Up Development Environment
+
+For contributors and developers working on `ros-is-ros2`:
+
+1.  **Clone and install in development mode**:
+    ```bash
+    git clone https://github.com/leochien1110/ros-is-ros2.git
+    cd ros-is-ros2
+    pip install -e .
+    ```
+
+2.  **Install development dependencies**:
+    ```bash
+    pip install -r requirements-dev.txt
+    # OR
+    pip install -e .[dev]
+    ```
+
+3.  **Set up pre-commit hooks** (recommended):
+    ```bash
+    pre-commit install
+    ```
+
+### Pre-commit Hooks
+
+This project uses pre-commit hooks to ensure code quality and run tests automatically before each commit. The hooks include:
+
+- **Code Formatting**: `black` and `isort` for Python code formatting
+- **Linting**: `flake8` for Python linting and `shellcheck` for shell scripts
+- **Testing**: `pytest` runs the full test suite
+- **General**: Trailing whitespace removal, YAML validation, etc.
+
+**Manual execution**:
 ```bash
-# Check the command is available
-ros-is-ros2 --help
+# Run all hooks on all files
+pre-commit run --all-files
 
-# Check version
-pip list | grep ros-is-ros2
-
-# Test the full workflow
-ros-is-ros2 install
-source ~/.bashrc
-rostopic --help    # Should show ROS2 topic help
+# Run specific hook
+pre-commit run black
+pre-commit run pytest
 ```
 
-## Supported Commands
+**What happens during commit**:
+- All staged files are automatically formatted and linted
+- Tests are run to ensure nothing is broken
+- If any check fails, the commit is blocked
+- Fix the issues and commit again
 
-All commands support full tab completion:
-
-- `rostopic` → `ros2 topic`
-- `rosnode` → `ros2 node`
-- `rosservice` → `ros2 service`
-- `rosparam` → `ros2 param`
-- `rosbag` → `ros2 bag`
-- `rosrun` → `ros2 run`
-- `roslaunch` → `ros2 launch`
-- `rospack` → `ros2 pkg`
-- `rossrv` → `ros2 interface`
-- `rosmsg` → `ros2 interface`
-
-## Usage
-
-After installation, use ROS1 commands as you normally would:
+### Running Tests
 
 ```bash
-rostopic list<TAB>        # Tab completion for subcommands
-rostopic echo /chatter<TAB>  # Tab completion for topics
-rosnode list
-rosrun demo_nodes_cpp talker<TAB>  # Tab completion for packages/executables
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=src/ros_is_ros2
+
+# Run specific test file
+pytest tests/unit/test_cli.py
 ```
 
-Each command is a simple alias that forwards to the appropriate ROS2 equivalent with full completion support.
-
-## Tab Completion Examples
-
-```bash
-# Topic completion
-rostopic echo <TAB>
-rostopic hz <TAB>
-
-# Node completion
-rosnode info <TAB>
-
-# Package/executable completion
-rosrun <TAB>
-rosrun demo_nodes_cpp <TAB>
-```
-
-## Uninstallation
-
-```bash
-ros-is-ros2 uninstall
-source ~/.bashrc    # or ~/.zshrc
-```
-
-## Requirements
-
-- ROS2 (Humble, Iron, Jazzy, or Rolling)
-- Python 3.8+
-- Bash or Zsh shell
-
-**Note**: For bash users, `bash-completion` will be automatically installed during setup for optimal tab completion experience.
-
-## How It Works
-
-1. **Simple Aliases**: Uses shell aliases instead of Python wrappers
-2. **Complete-Alias**: Leverages the `cykerway/complete-alias` tool for proper completion
-3. **Shell Integration**: Adds a single line to your shell RC file
-4. **Cross-Shell**: Supports both Bash and Zsh
-
-## Architecture
+### Project Structure
 
 ```
 ros-is-ros2/
-├── cli.py                 # Installation CLI
-├── shims/
-│   ├── bash.sh           # Bash aliases + completion setup
-│   └── zsh.sh            # Zsh functions + completion setup
-└── third_party/
-    └── complete_alias.bash  # Vendored completion helper
+├── src/ros_is_ros2/           # Main package
+│   ├── cli.py                 # Installation CLI
+│   ├── shims/                 # Shell integration scripts
+│   │   ├── bash.sh           # Bash aliases + completion
+│   │   └── zsh.sh            # Zsh functions + completion
+│   └── third_party/          # Vendored dependencies
+│       └── complete_alias.bash
+├── tests/                     # Test suite
+│   ├── unit/                 # Unit tests
+│   └── integration/          # Integration tests
+├── .pre-commit-config.yaml   # Pre-commit configuration
+├── requirements-dev.txt      # Development dependencies
+└── pyproject.toml           # Project configuration
 ```
-
 
 ## License and Attribution
 
@@ -282,11 +347,11 @@ This project is licensed under the **GNU General Public License v3.0 or later** 
 
 This project includes the following third-party software:
 
-- **complete-alias** by Cyker Way  
-  - **License**: GNU General Public License v3.0  
-  - **Copyright**: Copyright (C) 2016-2021 Cyker Way  
-  - **Source**: https://github.com/cykerway/complete-alias  
-  - **Location**: `src/ros_is_ros2/third_party/complete_alias.bash`  
+- **complete-alias** by Cyker Way
+  - **License**: GNU General Public License v3.0
+  - **Copyright**: Copyright (C) 2016-2021 Cyker Way
+  - **Source**: https://github.com/cykerway/complete-alias
+  - **Location**: `src/ros_is_ros2/third_party/complete_alias.bash`
   - **Purpose**: Provides bash completion for aliased commands
 
 ### License Summary

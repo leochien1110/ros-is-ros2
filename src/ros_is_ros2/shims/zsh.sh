@@ -1,3 +1,4 @@
+#!/bin/zsh
 # --- BEGIN ros-is-ros2 (zsh) ---
 # This file is sourced by your shell RC. Do not execute directly.
 

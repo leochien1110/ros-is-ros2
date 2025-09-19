@@ -1,3 +1,4 @@
+#!/bin/bash
 # --- BEGIN ros-is-ros2 (bash) ---
 # This file is sourced by your shell RC. Do not execute directly.
 
@@ -22,6 +23,7 @@ fi
 # 2) Source ROS 2 and register argcomplete for `ros2`
 # Try to find and source ROS 2 setup
 if [ -n "$ROS_DISTRO" ] && [ -f "/opt/ros/$ROS_DISTRO/setup.bash" ]; then
+  # shellcheck disable=SC1090
   . "/opt/ros/$ROS_DISTRO/setup.bash"
 elif [ -f /opt/ros/humble/setup.bash ]; then
   . /opt/ros/humble/setup.bash
@@ -41,6 +43,7 @@ fi
 # 3) Load complete_alias (vendored)
 _ros_is_ros2_complete_alias_path="${BASH_SOURCE[0]%/*}/../third_party/complete_alias.bash"
 if [ -f "$_ros_is_ros2_complete_alias_path" ]; then
+  # shellcheck disable=SC1090
   . "$_ros_is_ros2_complete_alias_path"
 fi
 

@@ -18,12 +18,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from __future__ import annotations
-import argparse, os, sys, textwrap, subprocess, platform
-from pathlib import Path
+
+import argparse
+import os
 import shutil
+import subprocess
+import sys
+from pathlib import Path
 
 BLOCK_BEGIN = "# >>> ros-is-ros2 >>>"
-BLOCK_END   = "# <<< ros-is-ros2 <<<"
+BLOCK_END = "# <<< ros-is-ros2 <<<"
+
 
 def rc_file(shell: str) -> Path:
     home = Path.home()
@@ -31,11 +36,13 @@ def rc_file(shell: str) -> Path:
         return home / ".zshrc"
     return home / ".bashrc"
 
+
 def shim_path(shell: str) -> Path:
     here = Path(__file__).resolve().parent
     if shell.endswith("zsh"):
         return here / "shims" / "zsh.sh"
     return here / "shims" / "bash.sh"
+
 
 def detect_shell() -> str:
     # Prefer $SHELL; fallback to argv[0]
@@ -43,6 +50,7 @@ def detect_shell() -> str:
     if shell:
         return shell
     return shutil.which("bash") or "bash"
+
 
 def add_block(rc: Path, shell: str, shim: Path):
     rc.parent.mkdir(parents=True, exist_ok=True)
@@ -59,6 +67,7 @@ def add_block(rc: Path, shell: str, shim: Path):
         content += "\n"
     rc.write_text(content + block)
 
+
 def remove_block(rc: Path):
     if not rc.exists():
         return
@@ -68,15 +77,13 @@ def remove_block(rc: Path):
         post = content.split(BLOCK_END)[-1]
         rc.write_text(pre + post)
 
+
 def is_bash_completion_installed() -> bool:
     """Check if bash-completion is already installed and functional."""
     # First check if bash-completion package is installed (Linux)
     try:
         result = subprocess.run(
-            ["dpkg", "-l", "bash-completion"],
-            capture_output=True,
-            text=True,
-            timeout=5
+            ["dpkg", "-l", "bash-completion"], capture_output=True, text=True, timeout=5
         )
         if result.returncode == 0 and "ii" in result.stdout:
             return True
@@ -87,17 +94,17 @@ def is_bash_completion_installed() -> bool:
     main_completion_file = "/usr/share/bash-completion/bash_completion"
     if Path(main_completion_file).exists():
         return True
-    
+
     # Check for other platform-specific locations
     other_paths = [
         "/usr/local/etc/bash_completion",  # macOS homebrew
         "/opt/homebrew/etc/bash_completion",  # macOS Apple Silicon homebrew
-        "/usr/local/share/bash-completion/bash_completion"
+        "/usr/local/share/bash-completion/bash_completion",
     ]
-    
+
     if any(Path(path).exists() for path in other_paths):
         return True
-    
+
     # /etc/bash_completion often just sources the main file, so check if it's functional
     etc_completion = Path("/etc/bash_completion")
     if etc_completion.exists():
@@ -111,43 +118,46 @@ def is_bash_completion_installed() -> bool:
                 return True
         except (OSError, UnicodeDecodeError):
             pass
-    
+
     return False
+
 
 def detect_package_manager() -> str | None:
     """Detect the available package manager."""
     managers = {
         "apt": ["apt", "apt-get"],
         "yum": ["yum"],
-        "dnf": ["dnf"], 
+        "dnf": ["dnf"],
         "brew": ["brew"],
         "pacman": ["pacman"],
-        "zypper": ["zypper"]
+        "zypper": ["zypper"],
     }
-    
+
     for manager, commands in managers.items():
         for cmd in commands:
             if shutil.which(cmd):
                 return manager
     return None
 
+
 def install_bash_completion() -> bool:
     """Install bash-completion using the appropriate package manager."""
     if is_bash_completion_installed():
         print("✓ bash-completion is already installed")
         return True
-    
+
     print("Installing bash-completion for optimal tab completion...")
-    
+
     package_manager = detect_package_manager()
     if not package_manager:
-        print("⚠ Could not detect package manager. Please install bash-completion manually:")
+        print("⚠ Could not detect package manager.")
+        print("Please install bash-completion manually:")
         print("  Ubuntu/Debian: sudo apt install bash-completion")
         print("  CentOS/RHEL:   sudo yum install bash-completion")
         print("  Fedora:        sudo dnf install bash-completion")
         print("  macOS:         brew install bash-completion")
         return False
-    
+
     # Define installation commands
     install_commands = {
         "apt": ["sudo", "apt", "install", "-y", "bash-completion"],
@@ -155,33 +165,33 @@ def install_bash_completion() -> bool:
         "dnf": ["sudo", "dnf", "install", "-y", "bash-completion"],
         "brew": ["brew", "install", "bash-completion"],
         "pacman": ["sudo", "pacman", "-S", "--noconfirm", "bash-completion"],
-        "zypper": ["sudo", "zypper", "install", "-y", "bash-completion"]
+        "zypper": ["sudo", "zypper", "install", "-y", "bash-completion"],
     }
-    
+
     if package_manager not in install_commands:
         print(f"⚠ Unsupported package manager: {package_manager}")
         return False
-    
+
     try:
         cmd = install_commands[package_manager]
         print(f"Running: {' '.join(cmd)}")
-        
+
         # For brew, don't use sudo and capture output
         if package_manager == "brew":
-            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+            subprocess.run(cmd, check=True, capture_output=True, text=True)
         else:
             # Check if we can run sudo
             if os.geteuid() == 0:  # Already root
                 cmd = [c for c in cmd if c != "sudo"]  # Remove sudo if already root
-                result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+                subprocess.run(cmd, check=True, capture_output=True, text=True)
             else:
                 # For sudo commands, don't capture output so password prompt works
                 # Use stdin=None, stdout=None, stderr=None to inherit terminal
-                result = subprocess.run(cmd, check=True, stdin=None, stdout=None, stderr=None)
-        
+                subprocess.run(cmd, check=True, stdin=None, stdout=None, stderr=None)
+
         print("✓ bash-completion installed successfully")
         return True
-        
+
     except subprocess.CalledProcessError as e:
         print(f"⚠ Failed to install bash-completion: {e}")
         if package_manager != "brew" and os.geteuid() != 0:
@@ -196,15 +206,18 @@ def install_bash_completion() -> bool:
         print(f"⚠ Error installing bash-completion: {e}")
         return False
 
+
 def main():
     p = argparse.ArgumentParser(
         prog="ros-is-ros2",
-        description="Install ROS 1-style CLI shims (with autocompletion) for ROS 2."
+        description="Install ROS 1-style CLI shims (with autocompletion) for ROS 2.",
     )
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("install", help="Append sourcing line to your shell RC.")
     sub.add_parser("uninstall", help="Remove lines from your shell RC.")
-    sub.add_parser("print-path", help="Print the shim file path for your current shell.")
+    sub.add_parser(
+        "print-path", help="Print the shim file path for your current shell."
+    )
     args = p.parse_args()
 
     shell = detect_shell()
@@ -215,7 +228,7 @@ def main():
         # Install bash-completion if using bash
         if shell.endswith("bash"):
             install_bash_completion()
-        
+
         add_block(rc, shell, shim)
         print(f"Added ros-is-ros2 block to {rc}")
         print("Reload your shell:  source", rc)
@@ -228,6 +241,7 @@ def main():
         p.print_help()
         return 1
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
