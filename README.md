@@ -410,7 +410,32 @@ ros-is-ros2 --help
 
 For local/source installations, see the "Verifying Installation" section above.
 
-### Original Method 
+## License and Attribution
+
+This project is licensed under the **GNU General Public License v3.0 or later** (GPL-3.0-or-later).
+
+### Third-Party Components
+
+This project includes the following third-party software:
+
+- **complete-alias** by Cyker Way  
+  - **License**: GNU General Public License v3.0  
+  - **Copyright**: Copyright (C) 2016-2021 Cyker Way  
+  - **Source**: https://github.com/cykerway/complete-alias  
+  - **Location**: `src/ros_is_ros2/third_party/complete_alias.bash`  
+  - **Purpose**: Provides bash completion for aliased commands
+
+### License Summary
+
+- ✅ **Use**: Free for personal, academic, and commercial use
+- ✅ **Modify**: You can modify and distribute modifications
+- ✅ **Distribute**: You can distribute original and modified versions
+- ⚠️ **Copyleft**: Derivative works must also be GPL v3.0 compatible
+- ⚠️ **Source Code**: Must provide source code when distributing
+
+See the [LICENSE](LICENSE) file for the full license text.
+
+### Original Method w/o Python
 This idea can be simply achieve via alias and bash-completion. If you don't want to install this package, you can simply add the following to your shell RC file(`~/.bashrc` or `~/.zshrc`):
 ```bash
 ##### ROS 2 CLI Aliases #####
