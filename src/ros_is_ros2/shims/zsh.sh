@@ -48,4 +48,28 @@ if typeset -f _python_argcomplete+ros2 >/dev/null; then
   compdef _python_argcomplete+ros2 rossrv
   compdef _python_argcomplete+ros2 rosmsg
 fi
+
+# 3) Define rosdomainid function for managing ROS_DOMAIN_ID
+rosdomainid() {
+    if [ $# -eq 0 ]; then
+        echo "${ROS_DOMAIN_ID:-unset}"
+    else
+        if [[ $1 =~ '^[0-9]+$' ]] && (( $1 >= 0 && $1 <= 101 )); then
+            export ROS_DOMAIN_ID="$1"
+            echo "ROS_DOMAIN_ID set to $1"
+        else
+            echo "Error: Argument must be a number between 0 and 101" >&2
+            return 1
+        fi
+    fi
+}
+
+# Basic completion for rosdomainid (suggests numbers 0-101)
+compdef '_values -s , "domain ids" {0..101}' rosdomainid
+
+# 4) Define rosdepinstall function for easy rosdep installation
+rosdepinstall() {
+    rosdep update && rosdep install --from-paths src --ignore-src -r -y
+}
+
 # --- END ros-is-ros2 (zsh) ---

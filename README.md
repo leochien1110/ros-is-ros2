@@ -114,6 +114,71 @@ source ~/.bashrc
 rostopic --help    # Should show ROS2 topic help
 ```
 
+## Updating the Package
+
+If you have an older version installed (e.g., without new features like `rosdomainid` for managing ROS_DOMAIN_ID or `rosdepinstall` for quick dependency installation), follow these steps to update. This ensures the new macros take effect.
+
+### For Editable Installs (Recommended for Development)
+If you installed with `pip install -e .` (common for local development):
+
+1. **Navigate to the project directory**:
+   ```bash
+   cd /path/to/ros-is-ros2  # e.g., /home/leo/git/ros-is-ros2
+   ```
+
+2. **Pull the latest changes** (if using Git):
+   ```bash
+   git pull origin main
+   ```
+
+3. **Reinstall the editable package** (updates the shims with new features):
+   ```bash
+   python -m pip install -e .
+   ```
+
+4. **Reload the shims in your current terminal** (without relaunching):
+   ```bash
+   # Option 1: Full reload (safest, reloads everything)
+   source ~/.bashrc  # or ~/.zshrc for Zsh
+
+   # Option 2: Direct reload of shims only (faster, avoids re-running other setup)
+   ros-is-ros2 print-path | xargs source
+   ```
+
+5. **Verify the new features**:
+   ```bash
+   rosdomainid  # Should output "unset" or current value
+   rosdepinstall --help  # Should error if not in workspace, but command exists
+   ```
+
+### For Non-Editable Installs (Regular pip install)
+If you installed with `pip install .` or from a wheel:
+
+1. **Update the source code** (if from Git):
+   ```bash
+   cd /path/to/ros-is-ros2
+   git pull origin main
+   ```
+
+2. **Reinstall the package**:
+   ```bash
+   pip install .  # Or build and install wheel: python -m build && pip install dist/ros_is_ros2-*.whl
+   ```
+
+3. **Reload as above** (source ~/.bashrc or use ros-is-ros2 print-path).
+
+### For PyPI Installs (When Available)
+```bash
+pip install --upgrade ros-is-ros2
+ros-is-ros2 install  # Re-run to ensure shims are up-to-date
+source ~/.bashrc     # Reload
+```
+
+### Notes
+- **No Terminal Relaunch Needed**: Using `source` in your current session applies changes immediately.
+- **If Shims Not Installed**: Run `ros-is-ros2 install` first to add the sourcing line to your shell RC.
+- **Troubleshooting**: If functions don't appear, check `ros-is-ros2 print-path` outputs the correct shim path, and ensure it's sourced correctly in your RC file.
+
 ## Usage
 
 After installation, use ROS1 commands as you normally would. All commands support full tab completion for subcommands, topics, nodes, packages, and executables.
@@ -139,6 +204,10 @@ rostopic echo /chatter<TAB>  # Tab completion for topics
 rosnode list
 rosrun demo_nodes_cpp talker<TAB>  # Tab completion for packages/executables
 ```
+
+### New Macros (v0.2.0+)
+- `rosdomainid` [num]: Check or set ROS_DOMAIN_ID (e.g., `rosdomainid 42` sets it to 42; `rosdomainid` shows current).
+- `rosdepinstall`: Run `rosdep update && rosdep install --from-paths src --ignore-src -r -y` in one command.
 
 ## Support
 

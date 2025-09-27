@@ -73,4 +73,31 @@ if declare -F _complete_alias >/dev/null 2>&1; then
   complete -F _complete_alias rossrv
   complete -F _complete_alias rosmsg
 fi
+
+# 6) Define rosdomainid function for managing ROS_DOMAIN_ID
+rosdomainid() {
+    if [ $# -eq 0 ]; then
+        echo "${ROS_DOMAIN_ID:-unset}"
+    else
+        if [[ $1 =~ ^[0-9]+$ ]] && (( $1 >= 0 && $1 <= 101 )); then
+            export ROS_DOMAIN_ID="$1"
+            echo "ROS_DOMAIN_ID set to $1"
+        else
+            echo "Error: Argument must be a number between 0 and 101" >&2
+            return 1
+        fi
+    fi
+}
+
+# Optional: Add basic completion for rosdomainid (suggests numbers 0-101)
+_rosdomainid_complete() {
+    mapfile -t COMPREPLY < <(compgen -W "$(seq 0 101)" -- "$2")
+}
+complete -F _rosdomainid_complete rosdomainid
+
+# 7) Define rosdepinstall function for easy rosdep installation
+rosdepinstall() {
+    rosdep update && rosdep install --from-paths src --ignore-src -r -y
+}
+
 # --- END ros-is-ros2 (bash) ---
