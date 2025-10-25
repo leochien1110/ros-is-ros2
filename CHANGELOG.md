@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-10-25
+
+### Added
+- Launch argument tab completion (ROS1-style)
+  - Tab-complete launch file arguments for both system and workspace packages
+  - Partial matching and filtering of already-provided arguments
+  - File-based caching (1 hour TTL, configurable)
+  - Supports Python, XML, and YAML launch files
+- `launch_completion_helper.py`: Helper for parsing launch arguments
+- Cache cleanup on uninstall
+- Support for ros2 launch flags completion (`-s`, `-d`, `--debug`, etc.)
+
+### Changed
+- Custom completion for `roslaunch` with argument support (bash and zsh)
+- Added `clean_cache()` to cli.py for reversible uninstallation
+- Improved launch file discovery (supports symlinks in workspace packages)
+
 ## [0.3.0] - 2025-09-27
 
 ### Added

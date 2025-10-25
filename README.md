@@ -40,7 +40,7 @@ Download the latest wheel file from [GitHub Releases](https://github.com/leochie
 
 ```bash
 # Download ros_is_ros2-X.X.X-py3-none-any.whl from releases, then:
-pip install ros_is_ros2-0.2.0-py3-none-any.whl
+pip install ros_is_ros2-0.4.0-py3-none-any.whl
 ros-is-ros2 install    # Automatically installs bash-completion if needed
 source ~/.bashrc       # or ~/.zshrc
 ```
@@ -203,7 +203,30 @@ rostopic list<TAB>        # Tab completion for subcommands
 rostopic echo /chatter<TAB>  # Tab completion for topics
 rosnode list
 rosrun demo_nodes_cpp talker<TAB>  # Tab completion for packages/executables
+roslaunch realsense2_camera rs_launch.py <TAB>  # Tab completion for launch arguments
+roslaunch realsense2_camera rs_launch.py cam<TAB>  # Partial completion for arguments
 ```
+
+### Launch Argument Tab Completion
+
+Tab-complete launch file arguments just like in ROS1:
+
+```bash
+roslaunch realsense2_camera rs_launch.py <TAB>
+# Shows: camera_name:= camera_namespace:= serial_no:= ...
+
+roslaunch realsense2_camera rs_launch.py cam<TAB>
+# Shows: camera_name:= camera_namespace:=
+
+roslaunch realsense2_camera rs_launch.py camera_name:=cam1 <TAB>
+# Shows remaining arguments (filters out already-provided)
+```
+
+Features:
+- Works with system packages and custom workspaces
+- Supports Python, XML, and YAML launch files
+- First completion ~1-2s, subsequent instant (cached for 1 hour)
+- Configure via `ROS_IS_ROS2_CACHE_TTL` and `ROS_IS_ROS2_COMPLETION_TIMEOUT` env vars
 
 ### New Macros (v0.2.0+)
 - `rosdomainid` [num]: Check or set ROS_DOMAIN_ID (e.g., `rosdomainid 42` sets it to 42; `rosdomainid` shows current).
@@ -214,10 +237,14 @@ rosrun demo_nodes_cpp talker<TAB>  # Tab completion for packages/executables
 ### Uninstallation
 
 ```bash
-ros-is-ros2 uninstall
+ros-is-ros2 uninstall  # Removes shell integration and cleans cache
 pip uninstall ros-is-ros2
 source ~/.bashrc    # or ~/.zshrc
 ```
+
+The `uninstall` command will:
+- Remove the sourcing line from your shell RC file
+- Clean up the cache directory (`~/.cache/ros-is-ros2/`)
 
 ### Troubleshooting Local Install
 

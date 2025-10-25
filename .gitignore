@@ -128,6 +128,17 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# IDE / Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS specific
+.DS_Store
+Thumbs.db
+
 # Release scripts (customize as needed)
 create-release.sh
 

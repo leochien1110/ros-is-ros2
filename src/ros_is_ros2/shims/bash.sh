@@ -60,7 +60,162 @@ alias rospack='ros2 pkg'
 alias rossrv='ros2 interface'
 alias rosmsg='ros2 interface'
 
-# 5) Delegate completion to the underlying command
+# 5) Custom completion function for roslaunch with argument completion
+_roslaunch_args_complete() {
+    local cur="${COMP_WORDS[COMP_CWORD]}"
+
+    # Determine if we're completing launch arguments
+    # roslaunch (or ros2 launch) <package> <launch_file> [args...]
+    # We need at least 3 words: command, package, launch_file
+
+    local package=""
+    local launch_file=""
+    local args_start_idx=0
+
+    # Detect the position of package and launch file
+    # Handle both "roslaunch pkg file.py" and "ros2 launch pkg file.py"
+    if [[ "${COMP_WORDS[0]}" == "roslaunch" ]]; then
+        # roslaunch <package> <launch_file> [args...]
+        if [[ ${COMP_CWORD} -ge 3 ]]; then
+            package="${COMP_WORDS[1]}"
+            launch_file="${COMP_WORDS[2]}"
+            args_start_idx=3
+        fi
+    elif [[ "${COMP_WORDS[0]}" == "ros2" ]] && [[ "${COMP_WORDS[1]}" == "launch" ]]; then
+        # ros2 launch <package> <launch_file> [args...]
+        if [[ ${COMP_CWORD} -ge 4 ]]; then
+            package="${COMP_WORDS[2]}"
+            launch_file="${COMP_WORDS[3]}"
+            args_start_idx=4
+        fi
+    fi
+
+    # If we have package and launch_file and we're in the args section, provide argument completion
+    if [[ -n "$package" ]] && [[ -n "$launch_file" ]] && [[ ${COMP_CWORD} -ge $args_start_idx ]]; then
+        # If current word looks like an option (starts with -), provide ros2 launch flags
+        if [[ "$cur" == -* ]]; then
+            # Common ros2 launch flags
+            local flags=(
+                "-h" "--help"
+                "-a" "--show-all-subprocesses-output"
+                "-d" "--debug"
+                "-s" "--show-args" "--show-arguments"
+                "-p" "--print" "--print-description"
+                "-n" "--noninteractive"
+                "--launch-prefix"
+                "--launch-prefix-filter"
+            )
+            for flag in "${flags[@]}"; do
+                if [[ "$flag" == "$cur"* ]]; then
+                    COMPREPLY+=("$flag")
+                fi
+            done
+            return
+        fi
+
+        # Get argument names from the Python helper
+        local helper_script="${BASH_SOURCE[0]%/*}/../launch_completion_helper.py"
+        if [[ -f "$helper_script" ]]; then
+            local arguments
+            # Run the helper and capture output
+            arguments=$(python3 "$helper_script" "$package" "$launch_file" 2>/dev/null)
+
+            if [[ -n "$arguments" ]]; then
+                # Filter arguments that have already been provided
+                local provided_args=()
+                local i
+                for ((i=args_start_idx; i<COMP_CWORD; i++)); do
+                    local word="${COMP_WORDS[i]}"
+                    # Extract argument name from "arg:=value" format
+                    if [[ "$word" =~ ^([^:]+):= ]]; then
+                        provided_args+=("${BASH_REMATCH[1]}")
+                    fi
+                done
+
+                # Generate completions
+                local arg
+                while IFS= read -r arg; do
+                    # Skip if already provided
+                    local skip=0
+                    local provided
+                    for provided in "${provided_args[@]}"; do
+                        if [[ "$arg" == "$provided" ]]; then
+                            skip=1
+                            break
+                        fi
+                    done
+
+                    if [[ $skip -eq 0 ]]; then
+                        # Add := suffix for convenience
+                        local suggestion="${arg}:="
+                        # Only suggest if it matches the current prefix
+                        if [[ "$suggestion" == "$cur"* ]]; then
+                            COMPREPLY+=("$suggestion")
+                        fi
+                    fi
+                done <<< "$arguments"
+            fi
+        fi
+
+        # Don't fallback when we're in the arguments section
+        # Return with whatever completions we found (even if empty)
+        return
+    fi
+
+    # For package/file completion, manually get completions from ros2 command
+    # This avoids the "cannot unmask alias" error from _complete_alias
+
+    # Position 1: completing package name
+    if [[ ${COMP_CWORD} -eq 1 ]]; then
+        # Get list of packages with launch files
+        local packages
+        packages=$(ros2 pkg list 2>/dev/null)
+        if [[ -n "$packages" ]]; then
+            while IFS= read -r pkg; do
+                if [[ "$pkg" == "$cur"* ]]; then
+                    COMPREPLY+=("$pkg")
+                fi
+            done <<< "$packages"
+        fi
+        return
+    fi
+
+    # Position 2: completing launch file name
+    if [[ ${COMP_CWORD} -eq 2 ]]; then
+        local pkg="${COMP_WORDS[1]}"
+        # Get launch file directory
+        local pkg_share
+        pkg_share=$(ros2 pkg prefix "$pkg" 2>/dev/null)
+        if [[ -n "$pkg_share" ]]; then
+            # Only search in the launch directory to avoid duplicates
+            local launch_dir="$pkg_share/share/$pkg/launch"
+            if [[ -d "$launch_dir" ]]; then
+                # Find launch files (including symlinks with -L)
+                # Match both naming styles: *.launch.py (workspace) and *_launch.py (system)
+                local files
+                files=$(find -L "$launch_dir" -maxdepth 2 -type f \( -name "*launch.py" -o -name "*launch.xml" -o -name "*launch.yaml" \) 2>/dev/null)
+                if [[ -n "$files" ]]; then
+                    # Use associative array to deduplicate
+                    declare -A seen
+                    while IFS= read -r file; do
+                        local filename
+                        filename=$(basename "$file")
+                        if [[ "$filename" == "$cur"* ]] && [[ -z "${seen[$filename]}" ]]; then
+                            COMPREPLY+=("$filename")
+                            seen[$filename]=1
+                        fi
+                    done <<< "$files"
+                fi
+            fi
+        fi
+        return
+    fi
+}
+
+# 6) Register custom completion for roslaunch
+complete -F _roslaunch_args_complete roslaunch
+
+# 7) Delegate completion to other aliases
 if declare -F _complete_alias >/dev/null 2>&1; then
   complete -F _complete_alias rostopic
   complete -F _complete_alias rosnode
@@ -68,13 +223,12 @@ if declare -F _complete_alias >/dev/null 2>&1; then
   complete -F _complete_alias rosparam
   complete -F _complete_alias rosbag
   complete -F _complete_alias rosrun
-  complete -F _complete_alias roslaunch
   complete -F _complete_alias rospack
   complete -F _complete_alias rossrv
   complete -F _complete_alias rosmsg
 fi
 
-# 6) Define rosdomainid function for managing ROS_DOMAIN_ID
+# 8) Define rosdomainid function
 rosdomainid() {
     if [ $# -eq 0 ]; then
         echo "${ROS_DOMAIN_ID:-unset}"
@@ -89,13 +243,12 @@ rosdomainid() {
     fi
 }
 
-# Optional: Add basic completion for rosdomainid (suggests numbers 0-101)
 _rosdomainid_complete() {
     mapfile -t COMPREPLY < <(compgen -W "$(seq 0 101)" -- "$2")
 }
 complete -F _rosdomainid_complete rosdomainid
 
-# 7) Define rosdepinstall function for easy rosdep installation
+# 9) Define rosdepinstall function
 rosdepinstall() {
     rosdep update && rosdep install --from-paths src --ignore-src -r -y
 }

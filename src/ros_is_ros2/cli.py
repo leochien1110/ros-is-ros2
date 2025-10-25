@@ -78,6 +78,21 @@ def remove_block(rc: Path):
         rc.write_text(pre + post)
 
 
+def clean_cache():
+    """Clean up the cache directory for launch argument completion."""
+    cache_dir = Path.home() / ".cache" / "ros-is-ros2"
+    if cache_dir.exists():
+        try:
+            import shutil
+
+            shutil.rmtree(cache_dir)
+            print(f"Cleaned cache directory: {cache_dir}")
+        except OSError as e:
+            print(f"⚠ Could not remove cache directory {cache_dir}: {e}")
+    else:
+        print("No cache directory to clean")
+
+
 def is_bash_completion_installed() -> bool:
     """Check if bash-completion is already installed and functional."""
     # First check if bash-completion package is installed (Linux)
@@ -235,6 +250,7 @@ def main():
     elif args.cmd == "uninstall":
         remove_block(rc)
         print(f"Removed ros-is-ros2 block from {rc}")
+        clean_cache()
     elif args.cmd == "print-path":
         print(shim)
     else:
