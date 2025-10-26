@@ -10,7 +10,7 @@ For detailed documentation on usage, development, and troubleshooting, please se
 
 - ROS2 (Humble; Iron, Jazzy, and Rolling not tested yet)
 - Python 3.8+
-- Bash or Zsh shell
+- Bash shell (Zsh shell is still not supported, welcome to contribute!)
 
 **Note**: For bash users, `bash-completion` will be automatically installed during setup for an optimal tab completion experience.
 
@@ -59,9 +59,33 @@ Once installed, your favorite ROS 1 commands will be available with full tab-com
 | `rossrv`    | `ros2 interface` |
 | `rosmsg`    | `ros2 interface` |
 
+### ROS Domain ID Autocompletion
+
+Quickly check or set your ROS Domain ID with tab completion:
+
+```bash
+# Check current ROS_DOMAIN_ID
+rosdomainid
+# Output: 42 (or "unset" if not configured)
+
+# Set ROS_DOMAIN_ID with tab completion
+rosdomainid <TAB>
+# Shows: 0 1 2 3 ... 101
+
+# Set to a specific domain
+rosdomainid 42
+# Output: ROS_DOMAIN_ID set to 42
+```
+
 ### Launch Argument Autocompletion
 
 Enjoy ROS 1-style tab completion for launch arguments:
+
+![Native Autocompletion](media/native_autocompletion.gif)
+*Native ROS 2 launch argument completion*
+
+![ROS-is-ROS2 Autocompletion](media/ros-is-ros2_autocompletion.gif)
+*ROS 1-style launch argument completion with ros-is-ros2, ~10s faster*
 
 ```bash
 # Type 'roslaunch <pkg> <launch_file> ' and press <TAB>
