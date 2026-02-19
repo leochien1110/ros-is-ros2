@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ros-is-ros2"
-version = "0.4.0"
+version = "0.4.1"
 description = "ROS 1-style CLI aliases for ROS 2, with working autocompletion."
 readme = "README.md"
 license = {text = "GPL-3.0-or-later"}
@@ -24,7 +24,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Topic :: Scientific/Engineering :: Robotics",
+    "Topic :: Scientific/Engineering",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = []

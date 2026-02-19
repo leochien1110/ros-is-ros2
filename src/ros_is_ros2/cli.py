@@ -29,6 +29,16 @@ from pathlib import Path
 BLOCK_BEGIN = "# >>> ros-is-ros2 >>>"
 BLOCK_END = "# <<< ros-is-ros2 <<<"
 
+SETUP_HINT = (
+    "\n"
+    "⚡ Shell integration not set up yet!\n"
+    "   Run the following to enable ROS 1-style commands:\n"
+    "\n"
+    "     ros-is-ros2 install && source ~/.bashrc\n"
+    "\n"
+    "   (replace ~/.bashrc with ~/.zshrc if you use Zsh)\n"
+)
+
 
 def rc_file(shell: str) -> Path:
     home = Path.home()
@@ -76,6 +86,14 @@ def remove_block(rc: Path):
         pre = content.split(BLOCK_BEGIN)[0]
         post = content.split(BLOCK_END)[-1]
         rc.write_text(pre + post)
+
+
+def is_installed(rc: Path) -> bool:
+    """Return True if the ros-is-ros2 block is already present in the RC file."""
+    if not rc.exists():
+        return False
+    content = rc.read_text()
+    return BLOCK_BEGIN in content and BLOCK_END in content
 
 
 def clean_cache():
@@ -227,9 +245,10 @@ def main():
         prog="ros-is-ros2",
         description="Install ROS 1-style CLI shims (with autocompletion) for ROS 2.",
     )
-    sub = p.add_subparsers(dest="cmd", required=True)
+    sub = p.add_subparsers(dest="cmd")
     sub.add_parser("install", help="Append sourcing line to your shell RC.")
     sub.add_parser("uninstall", help="Remove lines from your shell RC.")
+    sub.add_parser("status", help="Check whether shell integration is active.")
     sub.add_parser(
         "print-path", help="Print the shim file path for your current shell."
     )
@@ -239,14 +258,27 @@ def main():
     rc = rc_file(shell)
     shim = shim_path(shell)
 
+    if args.cmd is None:
+        # No subcommand given — show setup hint if not installed, else usage.
+        if not is_installed(rc):
+            print(SETUP_HINT)
+        else:
+            p.print_help()
+        return 0
+
     if args.cmd == "install":
         # Install bash-completion if using bash
         if shell.endswith("bash"):
             install_bash_completion()
 
         add_block(rc, shell, shim)
-        print(f"Added ros-is-ros2 block to {rc}")
-        print("Reload your shell:  source", rc)
+        print(f"✓ Added ros-is-ros2 block to {rc}")
+        print(f"  Reload your shell:  source {rc}")
+    elif args.cmd == "status":
+        if is_installed(rc):
+            print(f"✓ ros-is-ros2 is installed (block found in {rc})")
+        else:
+            print(SETUP_HINT)
     elif args.cmd == "uninstall":
         remove_block(rc)
         print(f"Removed ros-is-ros2 block from {rc}")

@@ -14,31 +14,38 @@ For detailed documentation on usage, development, and troubleshooting, please se
 
 **Note**: For bash users, `bash-completion` will be automatically installed during setup for an optimal tab completion experience.
 
-### From GitHub Releases (Recommended)
-Download the latest wheel file from [GitHub Releases](https://github.com/leochien1110/ros-is-ros2/releases):
-
+### From PyPI (Recommended)
 ```bash
-# Download ros_is_ros2-X.X.X-py3-none-any.whl from releases, then:
-pip install ros_is_ros2-0.4.0-py3-none-any.whl
-ros-is-ros2 install    # Automatically installs bash-completion if needed
-source ~/.bashrc       # or ~/.zshrc
+pip install ros-is-ros2 && ros-is-ros2 install && source ~/.bashrc
 ```
 
-### From PyPI (when published)
+> **Zsh users:** replace `~/.bashrc` with `~/.zshrc`.
+
+> **Tip:** Not sure if setup ran? Run `ros-is-ros2 status` to check.
+
+### Alternative Methods
+
+<details>
+<summary>From a wheel file (GitHub Releases)</summary>
+
+Download the latest `.whl` from [GitHub Releases](https://github.com/leochien1110/ros-is-ros2/releases), then:
+
 ```bash
-pip install ros-is-ros2
-ros-is-ros2 install    # Automatically installs bash-completion if needed
-source ~/.bashrc       # or ~/.zshrc
+pip install ros_is_ros2-0.4.1-py3-none-any.whl && ros-is-ros2 install && source ~/.bashrc
 ```
 
-### From Source
+</details>
+
+<details>
+<summary>From source</summary>
+
 ```bash
 git clone https://github.com/leochien1110/ros-is-ros2.git
 cd ros-is-ros2
-pip install .
-ros-is-ros2 install
-source ~/.bashrc       # or ~/.zshrc
+pip install . && ros-is-ros2 install && source ~/.bashrc
 ```
+
+</details>
 
 ## Quick Use
 
@@ -58,6 +65,7 @@ Once installed, your favorite ROS 1 commands will be available with full tab-com
 | `rospack`   | `ros2 pkg`       |
 | `rossrv`    | `ros2 interface` |
 | `rosmsg`    | `ros2 interface` |
+| `rosdepinstall` | *(Shortcut)* |
 
 ### ROS Domain ID Autocompletion
 

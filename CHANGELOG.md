@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-02-18
+
+### Added
+- `status` subcommand: `ros-is-ros2 status` reports whether shell integration is active.
+- First-run hint: running `ros-is-ros2` with no subcommand now shows a friendly setup prompt (`⚡ Shell integration not set up yet!`) when the shim block is not yet present in the user's RC file, instead of a cryptic argparse error.
+- `is_installed()` helper in `cli.py` to detect whether the RC block is present.
+- `SETUP_HINT` constant for consistent messaging across `status` and the no-args path.
+
+### Changed
+- `install` success message now uses `✓` prefix for consistency with `status` output.
+- README installation sections simplified to single copy-paste one-liners (`pip install ... && ros-is-ros2 install && source ~/.bashrc`).
+- Removed the `python3 -m ros_is_ros2 install` fallback note (superseded by the first-run hint).
+
+### Fixed
+- Running `ros-is-ros2` with no arguments no longer exits with a non-zero code and argparse error; it exits cleanly with code 0 and actionable output.
+
 ## [0.4.0] - 2025-10-25
 
 ### Added

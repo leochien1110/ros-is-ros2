@@ -5,8 +5,6 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 from ros_is_ros2.cli import (
     BLOCK_BEGIN,
     BLOCK_END,
@@ -14,6 +12,7 @@ from ros_is_ros2.cli import (
     detect_package_manager,
     detect_shell,
     is_bash_completion_installed,
+    is_installed,
     main,
     rc_file,
     remove_block,
@@ -146,6 +145,38 @@ class TestBlockManagement:
         remove_block(Path("/nonexistent/file"))
 
 
+class TestIsInstalled:
+    """Test is_installed detection."""
+
+    def test_is_installed_true(self):
+        """Test detecting an installed block."""
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".bashrc", delete=False
+        ) as tmp:
+            tmp.write(f"{BLOCK_BEGIN}\nsome content\n{BLOCK_END}\n")
+            tmp_path = Path(tmp.name)
+        try:
+            assert is_installed(tmp_path) is True
+        finally:
+            tmp_path.unlink()
+
+    def test_is_installed_false_empty(self):
+        """Test detecting missing block in empty file."""
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".bashrc", delete=False
+        ) as tmp:
+            tmp.write("# just a normal bashrc\n")
+            tmp_path = Path(tmp.name)
+        try:
+            assert is_installed(tmp_path) is False
+        finally:
+            tmp_path.unlink()
+
+    def test_is_installed_false_nonexistent(self):
+        """Test detecting missing block when file doesn't exist."""
+        assert is_installed(Path("/nonexistent/.bashrc")) is False
+
+
 class TestBashCompletionDetection:
     """Test bash completion detection."""
 
@@ -221,8 +252,39 @@ class TestMainCLI:
                 assert result == 0
                 mock_print.assert_called_once()
 
-    def test_main_no_command(self):
-        """Test main with no command shows help."""
+    @patch("ros_is_ros2.cli.is_installed", return_value=False)
+    def test_main_status_not_installed(self, _mock):
+        """Test status command when not installed."""
+        with patch("sys.argv", ["ros-is-ros2", "status"]):
+            with patch("builtins.print") as mock_print:
+                result = main()
+                assert result == 0
+                printed = " ".join(str(c) for c in mock_print.call_args_list)
+                assert "install" in printed
+
+    @patch("ros_is_ros2.cli.is_installed", return_value=True)
+    def test_main_status_installed(self, _mock):
+        """Test status command when installed."""
+        with patch("sys.argv", ["ros-is-ros2", "status"]):
+            with patch("builtins.print") as mock_print:
+                result = main()
+                assert result == 0
+                printed = " ".join(str(c) for c in mock_print.call_args_list)
+                assert "installed" in printed
+
+    @patch("ros_is_ros2.cli.is_installed", return_value=False)
+    def test_main_no_command_shows_hint(self, _mock):
+        """Test that running with no command shows the setup hint."""
         with patch("sys.argv", ["ros-is-ros2"]):
-            with pytest.raises(SystemExit):
-                main()
+            with patch("builtins.print") as mock_print:
+                result = main()
+                assert result == 0
+                printed = " ".join(str(c) for c in mock_print.call_args_list)
+                assert "install" in printed
+
+    @patch("ros_is_ros2.cli.is_installed", return_value=True)
+    def test_main_no_command_shows_help_when_installed(self, _mock):
+        """Test that running with no command shows help when already installed."""
+        with patch("sys.argv", ["ros-is-ros2"]):
+            result = main()
+            assert result == 0
